@@ -1,0 +1,43 @@
+name: Offline adoption evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [evaluation/offline-cloud-trial]
+    paths:
+      - scripts/evaluation/**
+      - .github/workflows/offline-evaluation.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offline-evaluation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-evaluation:
+    # Do not run on the upstream repository or a private copy with metered CI.
+    if: github.repository == 'JonathanShynn/automaton' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build disposable evaluation image
+        run: docker build --tag automaton-offline-evaluation --file scripts/evaluation/Dockerfile .
+      - name: Run without network, secrets, host mounts, or writable application files
+        run: |
+          timeout --kill-after=10s 90s docker run --rm \
+            --name automaton-offline-evaluation \
+            --network none \
+            --read-only \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            --memory 2g --cpus 2 --pids-limit 128 \
+            --tmpfs /tmp:rw,nosuid,nodev,size=256m,mode=1777 \
+            automaton-offline-evaluation
+      - name: Remove evaluation container
+        if: always()
+        run: docker rm --force automaton-offline-evaluation 2>/dev/null || true

@@ -1,5 +1,8 @@
 # Evaluación aislada de Automaton para Agent Zero
 
+Resultado y bloqueos: [ASSESSMENT.md](ASSESSMENT.md). La primera evaluación
+aislada en GitHub está completada; no es un despliegue permanente.
+
 Esta prueba ejecuta el motor real de Automaton con respuestas de modelo
 predefinidas, clientes de nube simulados y SQLite real. No inicia `--run`, no
 crea billeteras, no aprovisiona servicios y no requiere claves.

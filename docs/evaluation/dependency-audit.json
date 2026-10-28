@@ -1,0 +1,182 @@
+{
+  "date": "2026-10-29",
+  "command": "pnpm audit --prod --json",
+  "source_commit": "d8f816881fd24b6f5e3d616e59edec387a447667",
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 9,
+      "high": 10,
+      "critical": 2
+    },
+    "dependencies": 163,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 163
+  },
+  "advisories": [
+    {
+      "id": "GHSA-48c2-rrv3-qjmp",
+      "module": "yaml",
+      "severity": "moderate",
+      "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+      "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp",
+      "vulnerable_versions": ">=2.0.0 <2.8.3",
+      "patched_versions": ">=2.8.3"
+    },
+    {
+      "id": "GHSA-jcxm-m3jx-f287",
+      "module": "simple-git",
+      "severity": "high",
+      "title": "simple-git Affected by Command Execution via Option-Parsing Bypass",
+      "url": "https://github.com/advisories/GHSA-jcxm-m3jx-f287",
+      "vulnerable_versions": "<3.32.0",
+      "patched_versions": ">=3.32.0"
+    },
+    {
+      "id": "GHSA-r275-fr43-pm7q",
+      "module": "simple-git",
+      "severity": "critical",
+      "title": "simple-git has blockUnsafeOperationsPlugin bypass via case-insensitive protocol.allow config key enables RCE",
+      "url": "https://github.com/advisories/GHSA-r275-fr43-pm7q",
+      "vulnerable_versions": ">=3.15.0 <3.32.3",
+      "patched_versions": ">=3.32.3"
+    },
+    {
+      "id": "GHSA-hffm-xvc3-vprc",
+      "module": "simple-git",
+      "severity": "high",
+      "title": "simple-git is vulnerable to Remote Code Execution",
+      "url": "https://github.com/advisories/GHSA-hffm-xvc3-vprc",
+      "vulnerable_versions": "<3.36.0",
+      "patched_versions": ">=3.36.0"
+    },
+    {
+      "id": "GHSA-58qx-3vcg-4xpx",
+      "module": "ws",
+      "severity": "moderate",
+      "title": "ws: Uninitialized memory disclosure",
+      "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx",
+      "vulnerable_versions": ">=8.0.0 <8.20.1",
+      "patched_versions": ">=8.20.1"
+    },
+    {
+      "id": "GHSA-w5hq-g745-h8pq",
+      "module": "uuid",
+      "severity": "moderate",
+      "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+      "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+      "vulnerable_versions": "<11.1.1",
+      "patched_versions": ">=11.1.1"
+    },
+    {
+      "id": "GHSA-h67p-54hq-rp68",
+      "module": "js-yaml",
+      "severity": "moderate",
+      "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+      "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
+      "vulnerable_versions": "<3.15.0",
+      "patched_versions": ">=3.15.0"
+    },
+    {
+      "id": "GHSA-96hv-2xvq-fx4p",
+      "module": "ws",
+      "severity": "high",
+      "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+      "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+      "vulnerable_versions": ">=8.0.0 <8.21.0",
+      "patched_versions": ">=8.21.0"
+    },
+    {
+      "id": "GHSA-96hv-2xvq-fx4p",
+      "module": "ws",
+      "severity": "high",
+      "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+      "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+      "vulnerable_versions": ">=7.0.0 <7.5.11",
+      "patched_versions": ">=7.5.11"
+    },
+    {
+      "id": "GHSA-52cp-r559-cp3m",
+      "module": "js-yaml",
+      "severity": "high",
+      "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+      "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+      "vulnerable_versions": ">=3.0.0 <3.15.0",
+      "patched_versions": ">=3.15.0"
+    },
+    {
+      "id": "GHSA-5p4m-2wfm-xmqj",
+      "module": "js-yaml",
+      "severity": "high",
+      "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) \u2014 CVE-2026-59870 fix not backported",
+      "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+      "vulnerable_versions": ">=3.0.0 <3.15.1",
+      "patched_versions": ">=3.15.1"
+    },
+    {
+      "id": "GHSA-528h-pc64-c93x",
+      "module": "stream-json",
+      "severity": "moderate",
+      "title": "stream-json: pick/ignore/filter/replace filters are O(depth\u00b2) on nested input \u2014 small crafted JSON blocks the event loop for seconds\u2192minutes (DoS)",
+      "url": "https://github.com/advisories/GHSA-528h-pc64-c93x",
+      "vulnerable_versions": "<=3.4.0",
+      "patched_versions": ">=3.5.0"
+    },
+    {
+      "id": "GHSA-2883-xcg3-v3hh",
+      "module": "js-yaml",
+      "severity": "high",
+      "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+      "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+      "vulnerable_versions": ">=3.0.0 <3.15.2",
+      "patched_versions": ">=3.15.2"
+    },
+    {
+      "id": "GHSA-x6jw-m9v5-85vh",
+      "module": "simple-git",
+      "severity": "critical",
+      "title": "simple-git unsafe-operation guard does not block trailer command configuration",
+      "url": "https://github.com/advisories/GHSA-x6jw-m9v5-85vh",
+      "vulnerable_versions": ">=3.15.0 <4.0.1",
+      "patched_versions": ">=4.0.1"
+    },
+    {
+      "id": "GHSA-g4wm-2vf7-vfgr",
+      "module": "simple-git",
+      "severity": "high",
+      "title": "simple-git allows command execution through unblocked Git configuration includes",
+      "url": "https://github.com/advisories/GHSA-g4wm-2vf7-vfgr",
+      "vulnerable_versions": "<=3.36.0",
+      "patched_versions": ">=4.0.0"
+    },
+    {
+      "id": "GHSA-hqr4-qq8f-hg3x",
+      "module": "stream-json",
+      "severity": "moderate",
+      "title": "stream-json: JSONC parser and verifier re-scan the whole accumulated comment on every input chunk",
+      "url": "https://github.com/advisories/GHSA-hqr4-qq8f-hg3x",
+      "vulnerable_versions": "<=3.5.0",
+      "patched_versions": ">=3.6.0"
+    },
+    {
+      "id": "GHSA-mjw6-4jj6-33hc",
+      "module": "stream-json",
+      "severity": "moderate",
+      "title": "stream-json has a prototype pollution issue: Assembler writes this.current[this.key] on plain objects",
+      "url": "https://github.com/advisories/GHSA-mjw6-4jj6-33hc",
+      "vulnerable_versions": "<3.6.0",
+      "patched_versions": ">=3.6.0"
+    },
+    {
+      "id": "GHSA-858h-whjf-mvg5",
+      "module": "simple-git",
+      "severity": "high",
+      "title": "simple-git: unsafe-operations plugin bypass via git long-option abbreviation (--receive-p/--exe) -> command execution (residual of CVE-2026-28291)",
+      "url": "https://github.com/advisories/GHSA-858h-whjf-mvg5",
+      "vulnerable_versions": "<=3.36.0",
+      "patched_versions": ">=4.0.0"
+    }
+  ]
+}

@@ -18,4 +18,4 @@ RUN pnpm run typecheck \
     && pnpm run build
 
 USER node
-CMD ["python3", "scripts/evaluation/run-offline.py", "/usr/local/bin/node", "node_modules/vitest/vitest.mjs", "run", "--config", "scripts/evaluation/vitest.config.ts"]
+CMD ["/bin/sh", "scripts/evaluation/container-entrypoint.sh"]

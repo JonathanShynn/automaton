@@ -1,8 +1,9 @@
-import { defineConfig } from "vitest/config";
 import os from "node:os";
 import path from "node:path";
 
-export default defineConfig({
+// No package imports: the container copies this file to /tmp so Vite's
+// temporary bundled configuration never needs to write to the application.
+export default {
   cacheDir: path.join(os.tmpdir(), "automaton-evaluation-vite"),
   test: {
     include: ["scripts/evaluation/offline.test.ts"],
@@ -11,4 +12,4 @@ export default defineConfig({
     minWorkers: 1,
     maxWorkers: 1,
   },
-});
+};

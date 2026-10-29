@@ -1,6 +1,7 @@
 # Evaluación aislada de Automaton para Agent Zero
 
-Estado actual y correcciones: [HARDENING.md](HARDENING.md).
+Estado actual: [presupuesto compartido y Gemini](GLOBAL_BUDGET.md).
+Correcciones anteriores: [HARDENING.md](HARDENING.md).
 La [primera evaluación](ASSESSMENT.md) se conserva como registro histórico.
 Las pruebas aisladas no son un despliegue permanente.
 

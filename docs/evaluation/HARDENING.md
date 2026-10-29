@@ -1,5 +1,8 @@
 # Correcciones y segunda validación
 
+Registro de la segunda fase. La siguiente fase implementa el presupuesto
+compartido y prepara Gemini: [GLOBAL_BUDGET.md](GLOBAL_BUDGET.md).
+
 Fecha: 29 de octubre de 2026, Asia/Taipei.
 Código evaluado: `b973db92434150a4fe54b81a7d298270e1eb59eb`.
 

@@ -1,0 +1,82 @@
+{
+  "date_taipei": "2026-10-29",
+  "code_commit": "e870b21057eed5566c5ae3fe52ae5a4521e4e250",
+  "base_commit": "029768fe0d33cb9036806441d4f084afcc61a06a",
+  "checks": {
+    "runtime_typecheck": "passed",
+    "evaluation_typecheck": "passed",
+    "new_tests_typecheck": "passed",
+    "build": "passed",
+    "full_suite": {
+      "numTotalTests": 1675,
+      "numPassedTests": 1675,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "success": true,
+      "files": 67,
+      "duration_ms": 55735
+    },
+    "offline_evaluation": {
+      "numTotalTests": 4,
+      "numPassedTests": 4,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "success": true,
+      "files": 1,
+      "duration_ms": 2916
+    },
+    "production_audit": {
+      "exit_code": 0,
+      "metadata": {
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0
+        },
+        "dependencies": 160,
+        "devDependencies": 0,
+        "optionalDependencies": 0,
+        "totalDependencies": 160
+      },
+      "scope": "production dependencies only"
+    }
+  },
+  "github": {
+    "ci": {
+      "run_id": 40807517841,
+      "url": "https://github.com/JonathanShynn/automaton/actions/runs/40807517841",
+      "conclusion": "success",
+      "node20_job_id": 123229891419,
+      "node22_job_id": 123229890327,
+      "tests_each": 1675
+    },
+    "isolated_container": {
+      "run_id": 40807512432,
+      "url": "https://github.com/JonathanShynn/automaton/actions/runs/40807512432",
+      "job_id": 123229874135,
+      "conclusion": "success",
+      "tests_passed": 4
+    },
+    "gemini_readiness": {
+      "ready": false,
+      "networkRequests": 0,
+      "secretsPrinted": false,
+      "missing": [
+        "GEMINI_API_KEY",
+        "GEMINI_MODEL",
+        "GEMINI_FREE_TIER_CONFIRMED",
+        "GEMINI_LIVE_PROBE_APPROVED",
+        "PERSISTENT_GEMINI_BUDGET_DB_PATH",
+        "GEMINI_BUDGET_POLICY_JSON"
+      ]
+    }
+  },
+  "live_model_requests": 0,
+  "human_handoff": {
+    "reason": "Gemini credential absent from fork; operator account/free-tier and persistent environment setup required",
+    "github_secret_name": "GEMINI_API_KEY",
+    "key_values_stored": false
+  }
+}

@@ -2,6 +2,43 @@
 
 Fecha: 29 de octubre de 2026 (Taiwán).
 
+## Resultado actual: ciclo real y checkpoint comprobados
+
+El propietario autorizó dos solicitudes gratuitas adicionales. La primera produjo
+JSON válido que no cumplía el esquema del adaptador (código 4). No se registró qué
+campo concreto falló. Se hizo opcional el comentario explicativo, manteniendo la
+validación estricta de acciones, y se añadió un ejemplo JSON explícito a la misión.
+La segunda solicitud completó un turno real del motor con Gemini y guardó el dato
+sintético en SQLite. Una nueva ejecución de proceso y contenedor, sin red ni clave
+de Gemini, abrió la base en modo de solo lectura y recuperó la memoria.
+
+[Ensayo correcto](https://github.com/JonathanShynn/automaton/actions/runs/40885491982).
+El proceso del ciclo alcanzó 172 MiB de RSS máxima; el verificador, 103 MiB. Esto
+solo mide una ejecución corta. No demuestra consumo sostenido, una segunda decisión
+del modelo tras el reinicio, operación 24/7 ni validación comercial.
+
+Las dos solicitudes autorizadas se consumieron. Cada una tiene una reserva externa
+independiente que el programa nunca elimina: `gemini-research-trial-v2-slot-1`
+y `gemini-research-trial-v2-slot-2`. Las reservas anteriores siguen intactas. El
+workflow queda desactivado otra vez (`if: false`); no hay inferencia recurrente.
+La base y los textos de ejecución no se subieron como artefactos ni se publicaron
+en logs: solo se publicaron los indicadores enteros/booleanos permitidos.
+
+El código probado es `8b2ab0f47e40692195580297dc808137f572412c`. La
+[CI](https://github.com/JonathanShynn/automaton/actions/runs/40885500758) aprobó
+1.691 pruebas en 68 archivos con Node 20 y Node 22, tipos y auditoría de producción
+sin avisos conocidos. La evaluación aislada pasó también. Las nuevas reservas
+pasaron cuatro pruebas de concurrencia, reinicio y fallo cerrado; las pruebas
+focalizadas del adaptador y checkpoint suman 16.
+[Evidencia actual](research-retry-results.json).
+
+No se contrató alojamiento ni se activó facturación. Para operación permanente
+faltan decidir alojamiento y presupuesto, autorizar cuotas/frecuencia de inferencia,
+y comprobar repetición de ciclos, recuperación y crecimiento del historial. El
+workspace de Render pendiente de confirmar sigue siendo `My Workspace`.
+
+Los apartados siguientes conservan el diseño y la evaluación anterior como historial.
+
 ## Qué cambia
 
 `runGeminiResearchCycle` conecta el motor real `runAgentLoop` a Gemini mediante

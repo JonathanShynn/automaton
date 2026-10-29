@@ -17,8 +17,8 @@ concurrency:
 
 jobs:
   single-probe:
-    # Owner approved two additional free requests on 2026-10-29. Old reservations stay intact.
-    if: github.repository == 'JonathanShynn/automaton' && github.event.repository.private == false
+    # Both approved v2 slots are consumed. Preserve reservations; no more model calls.
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 12
     # Only the reservation step receives this token. The inference container does not.

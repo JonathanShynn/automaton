@@ -1,7 +1,8 @@
 # Evaluación aislada de Automaton para Agent Zero
 
-Resultado y bloqueos: [ASSESSMENT.md](ASSESSMENT.md). La primera evaluación
-aislada en GitHub está completada; no es un despliegue permanente.
+Estado actual y correcciones: [HARDENING.md](HARDENING.md).
+La [primera evaluación](ASSESSMENT.md) se conserva como registro histórico.
+Las pruebas aisladas no son un despliegue permanente.
 
 Esta prueba ejecuta el motor real de Automaton con respuestas de modelo
 predefinidas, clientes de nube simulados y SQLite real. No inicia `--run`, no
@@ -72,9 +73,10 @@ general para ejecutar código hostil.
 ## Separación del arranque normal
 
 La lista de herramientas y el presupuesto de esta prueba se construyen dentro
-del test. **No se aplican al comando normal `node dist/index.js --run`.** Ese
-comando conserva la configuración de upstream y puede iniciar el asistente de
-alta y operaciones externas. No se debe usar como sustituto de esta receta.
+del test. **No se aplican al comando normal `node dist/index.js --run`.** El
+fork ahora bloquea por defecto pagos y aprovisionamiento de pago, pero ese
+comando aún puede iniciar el asistente de alta, realizar acciones externas y
+consumir inferencia. No se debe usar como sustituto de esta receta.
 
 El siguiente paso de adopción será elegir un servidor persistente y un modelo,
 implementar las restricciones en el arranque productivo y verificar límites

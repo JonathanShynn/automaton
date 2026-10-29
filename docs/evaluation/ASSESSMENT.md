@@ -1,5 +1,8 @@
 # Resultado de la evaluación inicial
 
+Registro histórico del código original. Las correcciones y los resultados
+posteriores están en [HARDENING.md](HARDENING.md).
+
 Fecha: 29 de octubre de 2026, Asia/Taipei.
 Versión analizada: Automaton 0.2.1, commit upstream
 `d8f816881fd24b6f5e3d616e59edec387a447667`.

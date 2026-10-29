@@ -71,11 +71,30 @@
         "PERSISTENT_GEMINI_BUDGET_DB_PATH",
         "GEMINI_BUDGET_POLICY_JSON"
       ]
+    },
+    "gemini_readiness_after_key_setup": {
+      "ready": false,
+      "missing": [
+        "GEMINI_MODEL",
+        "GEMINI_FREE_TIER_CONFIRMED",
+        "GEMINI_LIVE_PROBE_APPROVED",
+        "PERSISTENT_GEMINI_BUDGET_DB_PATH",
+        "GEMINI_BUDGET_POLICY_JSON"
+      ],
+      "networkRequests": 0,
+      "secretsPrinted": false,
+      "run_id": 40807512432,
+      "run_attempt": 2,
+      "job_id": 123400077613,
+      "checked_at": "2026-10-29T10:44:58Z",
+      "url": "https://github.com/JonathanShynn/automaton/actions/runs/40807512432/attempts/2",
+      "credential_detected": true,
+      "credential_validated_with_provider": false
     }
   },
   "live_model_requests": 0,
   "human_handoff": {
-    "reason": "Gemini credential absent from fork; operator account/free-tier and persistent environment setup required",
+    "reason": "Gemini credential detected without network; free-tier project confirmation and persistent environment setup still required",
     "github_secret_name": "GEMINI_API_KEY",
     "key_values_stored": false
   }

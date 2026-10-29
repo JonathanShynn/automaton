@@ -1,6 +1,7 @@
 # Evaluación aislada de Automaton para Agent Zero
 
-Estado actual: [presupuesto compartido y Gemini](GLOBAL_BUDGET.md).
+Estado actual: [presupuesto compartido y conexión real de Gemini comprobada](GLOBAL_BUDGET.md).
+El sondeo real de una petición pasó en GitHub; el agente continuo sigue pendiente.
 Correcciones anteriores: [HARDENING.md](HARDENING.md).
 La [primera evaluación](ASSESSMENT.md) se conserva como registro histórico.
 Las pruebas aisladas no son un despliegue permanente.
@@ -47,7 +48,9 @@ como usuario no privilegiado, con el código en solo lectura y datos temporales.
 Al terminar se descarta; no es un servidor permanente.
 
 El workflow `Offline adoption evaluation` repite esta receta con límite de
-12 minutos en el fork público indicado y sin secretos. Se activa al subir
+12 minutos en el fork público indicado. Sus pruebas del motor no reciben
+secretos; un paso separado verifica la presencia de la clave sin red ni
+petición al proveedor. Se activa al subir
 cambios en la rama de evaluación y también admite ejecución manual. No tiene
 cron ni reinicio infinito. GitHub puede requerir que el propietario habilite
 Actions en un fork; preparar el workflow no demuestra que se haya ejecutado.
@@ -76,8 +79,9 @@ general para ejecutar código hostil.
 La lista de herramientas y el presupuesto de esta prueba se construyen dentro
 del test. **No se aplican al comando normal `node dist/index.js --run`.** El
 fork ahora bloquea por defecto pagos y aprovisionamiento de pago, pero ese
-comando aún puede iniciar el asistente de alta, realizar acciones externas y
-consumir inferencia. No se debe usar como sustituto de esta receta.
+comando exige configuración y presupuesto existentes antes de cargar una
+billetera, y puede realizar acciones externas y consumir inferencia una vez
+configurado. No se debe usar como sustituto de esta receta.
 
 El siguiente paso de adopción será elegir un servidor persistente y un modelo,
 implementar las restricciones en el arranque productivo y verificar límites

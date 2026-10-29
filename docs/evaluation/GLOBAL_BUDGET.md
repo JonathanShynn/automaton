@@ -1,7 +1,8 @@
 # Presupuesto compartido y preparación de Gemini
 
 Fecha: 29 de octubre de 2026, Asia/Taipei. Código validado:
-`e870b21057eed5566c5ae3fe52ae5a4521e4e250`.
+`e870b21057eed5566c5ae3fe52ae5a4521e4e250` para el runtime;
+`064f820cf273c13a358783ed1bb61c4327fca3a3` para el sondeo real posterior.
 
 ## Alcance implementado
 
@@ -109,7 +110,8 @@ modelo](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) y en
 la [tabla de precios de Google](https://ai.google.dev/gemini-api/docs/pricing).
 La existencia de una capa gratuita en la tabla no demuestra que una clave
 concreta pertenezca a un proyecto gratuito ni que tenga cuota disponible.
-No se consultó una cuenta de Google ni se realizó una petición real.
+El propietario confirmó que el proyecto es gratuito y se realizó después
+una petición real limitada; ver el resultado y alcance al final del documento.
 
 La clave debe cargarse por el propietario en un gestor de secretos del entorno
 elegido. Para la comprobación de GitHub, el nombre del secreto es
@@ -130,17 +132,17 @@ producción sigue sin avisos conocidos. Las cuatro pruebas de la misión
 simulada también pasaron. Los resultados y enlaces de GitHub se guardan en
 [global-budget-results.json](global-budget-results.json).
 
-Estado de entrega: preparado y comprobado sin red, pendiente de credencial,
-confirmación del proyecto y elección del almacenamiento/entorno para la prueba
-real. No hay servicio permanente ni automatización de gasto activa.
+Estado actual: conexión real de una petición comprobada tras la confirmación
+del proyecto gratuito. Sigue pendiente un servicio persistente y la adaptación
+al ciclo completo; no hay automatización de gasto activa.
 
-## Intervención solicitada al propietario
+## Resultado real y siguiente acceso necesario
 
 ### Actualización: proyecto gratuito confirmado y sondeo único
 
 El propietario confirmó el 29 de octubre que la clave guardada corresponde
 a un proyecto gratuito sin facturación. GitHub detectó la clave en una
-comprobación sin red; todavía no se verificó con el proveedor.
+comprobación sin red; el sondeo real posterior también terminó correctamente.
 
 Se preparó `gemini-once.yml`: una prueba finita en el fork público, sin
 contratar servidor. Usa el modelo candidato ya documentado,
@@ -170,20 +172,39 @@ el alojamiento pendiente para un agente 24/7. El presupuesto cero sigue siendo
 contabilidad de aplicación apoyada en la confirmación del plan gratuito;
 no modifica la facturación de Google.
 
-Los pasos siguientes describen el handoff anterior; el paso de la clave y la
-confirmación del plan ya se completaron. La elección de alojamiento permanente
-sigue pendiente después de conocer el resultado de la prueba única.
+### Resultado verificado
 
-1. En los [secretos de Actions del fork](https://github.com/JonathanShynn/automaton/settings/secrets/actions),
-   crear `GEMINI_API_KEY` con una clave dedicada al ensayo. No escribir su
-   valor en el chat. Usar un proyecto que el propietario confirme como gratuito.
-2. Confirmar el proyecto/modelo que se usará. El candidato preparado es
-   `gemini-3.5-flash-lite`; no se ha cambiado de modelo ni de plan de la cuenta.
-3. Antes de `--live`, elegir dónde persistir el registro y terminar la política
-   privada. GitHub Actions se está utilizando para pruebas finitas; su disco
-   efímero no constituye un servidor persistente ni un registro compartido
-   entre ejecuciones. No se contratará alojamiento sin una decisión del dueño.
+La [prueba en GitHub](https://github.com/JonathanShynn/automaton/actions/runs/40861242593)
+terminó correctamente: Gemini devolvió una respuesta no vacía, con 10 tokens de
+entrada y 6 de salida. La reserva se confirmó antes del transporte y permanece
+intacta. Se descargó el artefacto contable, se verificó su SHA-256 contra GitHub
+y la integridad SQLite: contiene exactamente una petición completada y cero
+microunidades en reservas, cargos y coste observado. Es contabilidad bajo el
+plan gratuito confirmado; no se consultó la factura de Google. No se guarda
+el texto de la respuesta ni la clave en el informe.
 
-No activar facturación para resolver una falta de cuota. El paso de preparación
-de GitHub confirmó que falta la credencial; no autoriza la llamada real aunque
-más tarde se cargue la clave. El workflow entregado solo ejecuta `--check`.
+La suite volvió a aprobar 1.675 pruebas en 67 archivos con Node 20 y Node 22 en
+[CI](https://github.com/JonathanShynn/automaton/actions/runs/40861250026), y la
+auditoría de dependencias de producción no encontró avisos conocidos. Las
+cinco pruebas de la reserva y las 21 regresiones de presupuesto pasaron también
+sin red. [Evidencia](global-budget-results.json).
+
+### Continuidad pendiente
+
+La clave, el plan gratuito y la conexión al proveedor ya están comprobados.
+Este sondeo no ejecuta el ciclo completo de Automaton: el arranque principal
+sigue cargando una identidad/billetera y un cliente Conway. La adaptación de
+Gemini al ciclo real y la revisión de esa dependencia continúan pendientes;
+no debe confundirse el sondeo con una instalación operativa del agente.
+
+Se encontró una integración de Railway para inspeccionar alojamiento y
+volúmenes persistentes, pero no está conectada. El próximo acceso solicitado
+es instalar/conectar Railway con la cuenta del propietario. Se revisarán las
+opciones de esa cuenta antes de aprovisionar recursos. No se creó un servicio
+ni se activó una suscripción. Los créditos gratuitos limitados no son una
+promesa de operación gratuita continua.
+
+Para continuar, conservar la reserva del sondeo; no borrarla ni cambiar su
+nombre para repetir una llamada. No activar facturación para resolver falta
+de cuota. El proyecto AgentZero original permanece sin cambios. No existe aún
+un servicio 24/7, validación comercial ni ingreso real demostrado.

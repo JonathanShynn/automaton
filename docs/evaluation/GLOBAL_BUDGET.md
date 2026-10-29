@@ -136,6 +136,44 @@ real. No hay servicio permanente ni automatización de gasto activa.
 
 ## Intervención solicitada al propietario
 
+### Actualización: proyecto gratuito confirmado y sondeo único
+
+El propietario confirmó el 29 de octubre que la clave guardada corresponde
+a un proyecto gratuito sin facturación. GitHub detectó la clave en una
+comprobación sin red; todavía no se verificó con el proveedor.
+
+Se preparó `gemini-once.yml`: una prueba finita en el fork público, sin
+contratar servidor. Usa el modelo candidato ya documentado,
+`gemini-3.5-flash-lite`, cuya capa gratuita se volvió a verificar en la tabla
+oficial. Configura una petición como máximo, cero dinero y 256 tokens de
+salida. La política caduca el 1 de noviembre de 2026 a las 00:00 de Taiwán.
+
+Antes de llamar al proveedor, el workflow crea exclusivamente la referencia
+`refs/tags/evaluation/gemini-free-probe-v1-reserved` mediante un POST a GitHub.
+Solo una creación confirmada autoriza continuar. La referencia persiste fuera
+del runner; si ya existe, hay un error de permisos o la respuesta es ambigua,
+el proceso falla sin llamar a Gemini. Nunca se borra para reintentar, incluso
+si la llamada falla o el runner se interrumpe. Así no se depende de restaurar
+una caché o un artefacto para impedir otro intento. La exclusión depende de
+que el propietario conserve la referencia y no altere el workflow.
+
+El contenedor de inferencia recibe únicamente la clave de Gemini, las opciones
+públicas del sondeo y un directorio SQLite dedicado. No recibe el token de
+GitHub, herramientas de agente, billetera ni montajes del repositorio. El
+archivo SQLite se conserva como artefacto contable durante 30 días; la reserva
+en GitHub sigue existiendo aunque el artefacto caduque. No contiene claves ni
+prompts. No se activa horario recurrente ni ejecución comercial.
+
+Esta reserva duradera resuelve la contabilidad de **un solo sondeo** en un
+runner efímero. No proporciona almacenamiento operativo continuo ni sustituye
+el alojamiento pendiente para un agente 24/7. El presupuesto cero sigue siendo
+contabilidad de aplicación apoyada en la confirmación del plan gratuito;
+no modifica la facturación de Google.
+
+Los pasos siguientes describen el handoff anterior; el paso de la clave y la
+confirmación del plan ya se completaron. La elección de alojamiento permanente
+sigue pendiente después de conocer el resultado de la prueba única.
+
 1. En los [secretos de Actions del fork](https://github.com/JonathanShynn/automaton/settings/secrets/actions),
    crear `GEMINI_API_KEY` con una clave dedicada al ensayo. No escribir su
    valor en el chat. Usar un proyecto que el propietario confirme como gratuito.

@@ -35,6 +35,7 @@ export function createGeminiResearchInference(model: string, sharedBudget: Infer
         ...textMessages,
       ], response_format: { type: "json_object" } };
       return budget.run({ provider: "gemini", model, payload, maxOutputTokens: options?.maxTokens, actor: "research-parent" }, async limit => {
+        let failureShape = 0;
         let failureCode = 1; // 1 transport, 2 incomplete, 3 JSON, 4 schema, 5 action
         try {
           const completion = await client.chat.completions.create({ ...payload, max_tokens: limit, stream: false } as any);
@@ -43,8 +44,11 @@ export function createGeminiResearchInference(model: string, sharedBudget: Infer
           if (completion.choices[0]?.finish_reason !== "stop" || !raw) throw new Error("Incomplete response");
           failureCode = 3;
           const parsed = JSON.parse(raw);
+          failureShape = (parsed && typeof parsed === "object" && !Array.isArray(parsed) ? 1 : 0)
+            + (Array.isArray(parsed?.actions) ? 2 : 0) + (typeof parsed?.content === "string" ? 4 : 0)
+            + (Array.isArray(parsed) ? 8 : 0) + (Array.isArray(parsed?.tool_calls) ? 16 : 0);
           failureCode = 4;
-          if (!parsed || typeof parsed.content !== "string" || !Array.isArray(parsed.actions) || parsed.actions.length > 3) throw new Error("Invalid research response");
+          if (!parsed || !Array.isArray(parsed.actions) || parsed.actions.length > 3) throw new Error("Invalid research response");
           failureCode = 5;
           const calls: InferenceToolCall[] = parsed.actions.map((action: any) => {
             if (!action || !offered.has(action.name) || !allowed.has(action.name) ||
@@ -53,11 +57,11 @@ export function createGeminiResearchInference(model: string, sharedBudget: Infer
           });
           const usage = { promptTokens: completion.usage?.prompt_tokens ?? 0,
             completionTokens: completion.usage?.completion_tokens ?? 0, totalTokens: completion.usage?.total_tokens ?? 0 };
-          return { id: completion.id, model, message: { role: "assistant" as const, content: parsed.content, tool_calls: calls },
+          return { id: completion.id, model, message: { role: "assistant" as const, content: typeof parsed.content === "string" ? parsed.content : "", tool_calls: calls },
             toolCalls: calls.length ? calls : undefined, usage, finishReason: "stop" };
         } catch {
           // SDK errors may echo credentials or payloads; stop instead of logging them.
-          throw new GlobalBudgetError(`Gemini research request failed [code=${failureCode}]; operator review required`);
+          throw new GlobalBudgetError(`Gemini research request failed [code=${failureCode}] [shape=${failureShape}]; operator review required`);
         }
       }, result => ({ inputTokens: result.usage.promptTokens, outputTokens: result.usage.completionTokens }));
     },

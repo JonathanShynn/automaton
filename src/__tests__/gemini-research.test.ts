@@ -6,7 +6,7 @@ import { createDatabase } from "../state/database.js";
 import { GlobalInferenceBudget, type GlobalBudgetPolicy } from "../inference/global-budget.js";
 import { createGeminiResearchInference } from "../inference/gemini-research.js";
 import { runGeminiResearchCycle } from "../evaluation/research-cycle.js";
-import { researchTrialPreflight } from "../evaluation/research-trial.js";
+import { researchTrialPreflight, runResearchTrial, TRIAL_FACT } from "../evaluation/research-trial.js";
 import { runAgentLoop } from "../agent/loop.js";
 import { createTestConfig, createTestDb, createTestIdentity, MockInferenceClient } from "./mocks.js";
 
@@ -141,5 +141,33 @@ describe("Private research failure diagnostics", () => {
     await expect(promise).rejects.toThrow(`[code=${code}]`);
     expect(sdk.create).toHaveBeenCalledTimes(1);
     expect(db.raw.prepare("SELECT status FROM global_inference_attempts").get()).toEqual({ status: "uncertain" });
+  });
+});
+
+
+describe("Research response compatibility and offline checkpoint", () => {
+  it("accepts absent explanatory content while still requiring approved actions", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "synthetic-secret"); const db = open();
+    sdk.create.mockResolvedValue({ id: "synthetic", choices: [{ finish_reason: "stop", message: {
+      content: JSON.stringify({ actions: [{ name: "sleep", arguments: { duration_seconds: 60 } }] }) } }],
+      usage: { prompt_tokens: 10, completion_tokens: 10, total_tokens: 20 } });
+    const result = await createGeminiResearchInference("gemini-synthetic", gate(db)).chat([{ role: "user", content: "test" }], { tools });
+    expect(result.message.content).toBe(""); expect(result.toolCalls?.[0].function.name).toBe("sleep");
+  });
+  it("reopens a real SQLite checkpoint read-only without API key or SDK calls", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "synthetic-secret");
+    const dir = fs.mkdtempSync(path.join(process.cwd(), "research-checkpoint-test-")); directories.push(dir);
+    const filename = path.join(dir, "state.db"); const db = open(filename);
+    sdk.create.mockResolvedValue(response([
+      { name: "remember_fact", arguments: { category: "financial", key: "research_trial_offer", source: "simulation", value: TRIAL_FACT } },
+      { name: "sleep", arguments: { duration_seconds: 60 } },
+    ]));
+    await runGeminiResearchCycle({ db, budget: gate(db), model: "gemini-synthetic", mission: "Synthetic checkpoint", maxTurns: 1 });
+    db.close(); databases.splice(databases.indexOf(db),1);
+    sdk.create.mockClear(); vi.stubEnv("GEMINI_API_KEY", ""); vi.stubEnv("GEMINI_BUDGET_DB_PATH",filename);
+    const log=vi.spyOn(console,"log").mockImplementation(()=>{});
+    await runResearchTrial(["--verify"]);
+    const evidence=JSON.parse(log.mock.calls[0][0]);expect(evidence.checkpointReopened).toBe(true);expect(evidence.recalled).toBe(true);
+    expect(evidence.additionalProviderRequests).toBe(0);expect(sdk.create).not.toHaveBeenCalled();
   });
 });

@@ -62,7 +62,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/evaluation/reserve-research-attempt.mjs
-      - name: Run the real loop and resume its memory in a separate process
+      - name: Run the corrected store cycle with the remaining approved attempt
         id: live
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -75,29 +75,22 @@ jobs:
             --env GEMINI_API_KEY --env GEMINI_MODEL --env GEMINI_FREE_TIER_CONFIRMED \
             --env GEMINI_RESEARCH_TRIAL_APPROVED --env GEMINI_BUDGET_DB_PATH --env GEMINI_BUDGET_POLICY_JSON \
             --entrypoint /usr/local/bin/node automaton-gemini-research dist/evaluation/research-trial.js --store > "$RUNNER_TEMP/research-store.log" 2>&1
-      - name: Reserve the second request only after the checkpoint succeeds
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: node scripts/evaluation/reserve-research-attempt.mjs
-      - name: Resume the checkpoint in a separate process
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Verify SQLite in a new process without model access or network
         run: |
           umask 077
-          timeout --kill-after=10s 90s docker run --rm --name automaton-gemini-research \
+          timeout --kill-after=10s 30s docker run --rm --network none \
             --read-only --cap-drop ALL --security-opt no-new-privileges \
             --memory 512m --cpus 1 --pids-limit 64 \
             --mount "type=bind,source=$RUNNER_TEMP/research-trial-state,target=/state" \
-            --env GEMINI_API_KEY --env GEMINI_MODEL --env GEMINI_FREE_TIER_CONFIRMED \
-            --env GEMINI_RESEARCH_TRIAL_APPROVED --env GEMINI_BUDGET_DB_PATH --env GEMINI_BUDGET_POLICY_JSON \
-            --entrypoint /usr/local/bin/node automaton-gemini-research dist/evaluation/research-trial.js --resume > "$RUNNER_TEMP/research-resume.log" 2>&1
+            --env GEMINI_BUDGET_DB_PATH \
+            --entrypoint /usr/local/bin/node automaton-gemini-research dist/evaluation/research-trial.js --verify > "$RUNNER_TEMP/research-resume.log" 2>&1
       - name: Publish fixed numeric and boolean evidence only
         if: always() && steps.live.outcome != 'skipped'
         run: |
           python3 - <<'PYTHON'
           import json,os
           from pathlib import Path
-          fields={'researchTrialSuccess','turns','providerRequests','factStored','recalled','children','actualRevenueUsd','processPeakRssMiB','failureCode'}
+          fields={'researchTrialSuccess','turns','providerRequests','factStored','recalled','children','actualRevenueUsd','processPeakRssMiB','failureCode','failureShape','checkpointReopened','additionalProviderRequests'}
           for stage in ['store','resume']:
               filename=Path(os.environ['RUNNER_TEMP'])/('research-'+stage+'.log')
               reports=[]

@@ -1,3 +1,4 @@
+import { GlobalBudgetError, type InferenceBudgetExecutor } from "../inference/global-budget.js";
 /**
  * The Agent Loop
  *
@@ -72,6 +73,7 @@ const MAX_CONSECUTIVE_ERRORS = 5;
 const MAX_REPETITIVE_TURNS = 3;
 
 export interface AgentLoopOptions {
+  globalBudget?: InferenceBudgetExecutor;
   identity: AutomatonIdentity;
   config: AutomatonConfig;
   db: AutomatonDatabase;
@@ -169,7 +171,7 @@ export async function runAgentLoop(
         registry.overrideBaseUrl("openai", process.env.OPENAI_BASE_URL);
       }
 
-      const unifiedInference = new UnifiedInferenceClient(registry);
+      const unifiedInference = new UnifiedInferenceClient(registry, options.globalBudget);
       const agentTracker = new SimpleAgentTracker(db);
       const funding = new SimpleFundingProtocol(conway, identity, db);
       const messaging = new ColonyMessaging(
@@ -899,6 +901,15 @@ export async function runAgentLoop(
 
       consecutiveErrors = 0;
     } catch (err: any) {
+      if (err instanceof GlobalBudgetError) {
+        db.setKV("global_inference_stop", err.message);
+        await workerPool?.shutdown();
+        db.setAgentState("sleeping");
+        if (claimedMessages.length) resetInboxToReceived(db.raw, claimedMessages.map(message => message.id));
+        onStateChange?.("sleeping");
+        running = false;
+        break;
+      }
       consecutiveErrors++;
       log(config, `[ERROR] Turn failed: ${err.message}`);
 

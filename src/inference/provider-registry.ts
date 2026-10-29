@@ -434,6 +434,8 @@ export class ProviderRegistry {
     const client = new OpenAI({
       apiKey,
       baseURL: provider.baseUrl,
+      maxRetries: 0, // Every attempt must reserve from the shared budget first.
+      timeout: 60_000,
     });
 
     return {

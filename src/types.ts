@@ -70,6 +70,8 @@ export interface AutomatonConfig {
   treasuryPolicy?: TreasuryPolicy;
   /** Evaluation fork: external payments/provisioning are disabled unless true. */
   financialOperationsEnabled?: boolean;
+  /** Operator-owned policy for the shared persistent inference ledger. */
+  inferenceBudgetPath?: string;
   // Phase 2 config additions
   soulConfig?: SoulConfig;
   modelStrategy?: ModelStrategyConfig;

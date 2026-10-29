@@ -1,0 +1,19 @@
+{
+  "enabled": false,
+  "dailyMicros": 0,
+  "monthlyMicros": 0,
+  "perCallMicros": 0,
+  "dailyRequests": 1,
+  "monthlyRequests": 5,
+  "prices": [
+    {
+      "provider": "gemini",
+      "model": "gemini-REPLACE_WITH_CONFIRMED_MODEL",
+      "inputMicrosPerMillion": 0,
+      "outputMicrosPerMillion": 0,
+      "maxInputTokens": 8192,
+      "maxOutputTokens": 256,
+      "validUntil": "1970-01-01T00:00:00Z"
+    }
+  ]
+}

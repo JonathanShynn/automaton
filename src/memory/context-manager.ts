@@ -8,6 +8,7 @@ import { getEncoding, type Tiktoken } from "js-tiktoken";
 import type { ChatMessage } from "../types.js";
 
 const MAX_TOKEN_CACHE_SIZE = 10_000;
+const MAX_EXACT_TOKENIZE_CHARS = 16_384;
 const DEFAULT_RESERVE_TOKENS = 4_096;
 const COMPRESSION_HEADROOM_RATIO = 0.1;
 const MAX_EVENT_CONTENT_CHARS = 220;
@@ -140,6 +141,12 @@ export function createTokenCounter(): TokenCounter {
 
   const countTokens = (text: string, model?: string): number => {
     const normalizedText = text ?? "";
+    // Long repetitive strings make BPE merges extremely expensive. UTF-8 byte
+    // length is a conservative token upper bound and requires only linear
+    // work. Do not retain these large strings as cache keys either.
+    if (normalizedText.length > MAX_EXACT_TOKENIZE_CHARS) {
+      return Buffer.byteLength(normalizedText, "utf8");
+    }
     const key = formatCacheKey(normalizedText, model);
 
     const cached = cache.get(key);

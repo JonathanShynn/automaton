@@ -43,28 +43,28 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "test:coverage": "vitest run --coverage",
-    "test:security": "vitest run --grep 'security|injection|policy'",
-    "test:financial": "vitest run --grep 'financial|spend|treasury'",
+    "test:security": "vitest run src/__tests__/injection-defense.test.ts src/__tests__/command-injection.test.ts src/__tests__/policy-engine.test.ts src/__tests__/tools-security.test.ts src/__tests__/financial.test.ts",
+    "test:financial": "vitest run src/__tests__/financial.test.ts",
     "test:ci": "vitest run --reporter=verbose",
     "clean": "rm -rf dist && pnpm -r clean"
   },
   "dependencies": {
+    "@solana/web3.js": "^1.98.0",
     "@types/better-sqlite3": "^7.6.0",
     "better-sqlite3": "^11.0.0",
+    "bs58": "^6.0.0",
     "chalk": "^5.3.0",
     "cron-parser": "^4.9.0",
     "gray-matter": "^4.0.3",
     "js-tiktoken": "^1.0.21",
     "openai": "^6.24.0",
     "ora": "^8.0.0",
-    "simple-git": "^3.24.0",
-    "@solana/web3.js": "^1.98.0",
-    "bs58": "^6.0.0",
+    "simple-git": "^4.0.2",
     "siwe": "^2.3.0",
     "tweetnacl": "^1.0.3",
     "ulid": "^2.3.0",
     "viem": "^2.44.2",
-    "yaml": "^2.4.0"
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -79,6 +79,18 @@
     "onlyBuiltDependencies": [
       "better-sqlite3",
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "jayson@<5": "5.0.0",
+      "uuid@<11.1.1": "11.1.1",
+      "js-yaml@>=3 <4": "3.15.2",
+      "jayson>ws": "7.5.11",
+      "isomorphic-ws>ws": "7.5.11",
+      "rpc-websockets>ws": "8.21.0",
+      "ethers>ws": "8.21.0",
+      "isows>ws": "8.21.0",
+      "utf-8-validate": "5.0.10",
+      "viem>ws": "8.21.0"
+    }
   }
 }

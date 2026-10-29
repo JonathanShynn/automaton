@@ -7,6 +7,9 @@ on:
     paths:
       - scripts/evaluation/**
       - .github/workflows/offline-evaluation.yml
+      - src/**
+      - package.json
+      - pnpm-lock.yaml
 
 permissions:
   contents: read

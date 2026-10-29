@@ -316,6 +316,8 @@ export function createBuiltinTools(sandboxId: string): AutomatonTool[] {
           ctx.config.conwayApiUrl,
           ctx.identity.account,
           amountUsd,
+          undefined,
+          ctx.config.financialOperationsEnabled,
         );
 
         if (!result.success) {
@@ -1648,6 +1650,7 @@ Model: ${ctx.inference.getDefaultModel()}
             ctx.db,
             genesis,
             lifecycle,
+            ctx.config,
           );
         } catch (err: any) {
           // Auto-topup on 402 insufficient credits and retry once
@@ -1667,6 +1670,7 @@ Model: ${ctx.inference.getDefaultModel()}
                 account: ctx.identity.account,
                 error: err,
                 chainType: ctx.config.chainType || ctx.identity.chainType || "evm",
+                financialOperationsEnabled: ctx.config.financialOperationsEnabled,
               });
               if (topup?.success) {
                 const retryLifecycle = new ChildLifecycle(ctx.db.raw);
@@ -1681,6 +1685,7 @@ Model: ${ctx.inference.getDefaultModel()}
                   ctx.db,
                   retryGenesis,
                   retryLifecycle,
+                  ctx.config,
                 );
               }
             }
@@ -2777,6 +2782,8 @@ Model: ${ctx.inference.getDefaultModel()}
           body,
           extraHeaders,
           maxPayment,
+          ctx.config.chainType || ctx.identity.chainType || "evm",
+          ctx.config.financialOperationsEnabled,
         );
 
         if (!result.success) {

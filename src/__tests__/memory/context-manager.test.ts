@@ -47,6 +47,13 @@ function makeEvent(index: number, overrides?: Partial<StreamEvent>): StreamEvent
 }
 
 describe("createTokenCounter", () => {
+  it("bounds work and cache memory for oversized repetitive or multilingual input", () => {
+    const counter = createTokenCounter();
+    for (const text of ["x".repeat(500_000), "中文😀".repeat(10_000)]) {
+      expect(counter.countTokens(text)).toBe(Buffer.byteLength(text, "utf8"));
+    }
+    expect(counter.cache.size).toBe(0);
+  });
   it("createTokenCounter returns a working counter", () => {
     const counter = createTokenCounter();
 

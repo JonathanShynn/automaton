@@ -17,6 +17,7 @@ import type { PrivateKeyAccount, Address } from "viem";
 import { x402Fetch, getUsdcBalance } from "./x402.js";
 import { createLogger } from "../observability/logger.js";
 import type { ChainType } from "../identity/chain.js";
+import { assertFinancialOperationsEnabled } from "./financial-guard.js";
 
 const logger = createLogger("topup");
 
@@ -41,13 +42,15 @@ export async function topupCredits(
   account: PrivateKeyAccount,
   amountUsd: number,
   recipientAddress?: Address,
+  financialOperationsEnabled: boolean = false,
 ): Promise<TopupResult> {
+  assertFinancialOperationsEnabled(financialOperationsEnabled, "purchase credits");
   const address = recipientAddress || account.address;
   const url = `${apiUrl}/pay/${amountUsd}/${address}`;
 
   logger.info(`Attempting credit topup: $${amountUsd} USD for ${address}`);
 
-  const result = await x402Fetch(url, account, "GET");
+  const result = await x402Fetch(url, account, "GET", undefined, undefined, undefined, undefined, financialOperationsEnabled);
 
   if (!result.success) {
     logger.error(`Credit topup failed: ${result.error}`);
@@ -83,7 +86,9 @@ export async function topupForSandbox(params: {
   account: PrivateKeyAccount;
   error: Error & { status?: number; responseText?: string };
   chainType?: ChainType;
+  financialOperationsEnabled?: boolean;
 }): Promise<TopupResult | null> {
+  if (params.financialOperationsEnabled !== true) return null;
   const { apiUrl, account, error, chainType } = params;
 
   // Solana wallets cannot use x402 for topup (EVM-only payment protocol)
@@ -134,7 +139,7 @@ export async function topupForSandbox(params: {
   }
 
   logger.info(`Sandbox topup: deficit=${deficitCents}c, buying $${selectedTier} tier`);
-  return topupCredits(apiUrl, account, selectedTier);
+  return topupCredits(apiUrl, account, selectedTier, undefined, params.financialOperationsEnabled);
 }
 
 /**
@@ -151,7 +156,9 @@ export async function bootstrapTopup(params: {
   creditsCents: number;
   creditThresholdCents?: number;
   chainType?: ChainType;
+  financialOperationsEnabled?: boolean;
 }): Promise<TopupResult | null> {
+  if (params.financialOperationsEnabled !== true) return null;
   const { apiUrl, account, creditsCents, creditThresholdCents = 500, chainType } = params;
 
   // Solana wallets cannot use x402 for topup (EVM-only payment protocol)
@@ -188,5 +195,5 @@ export async function bootstrapTopup(params: {
     `Bootstrap topup: credits=$${(creditsCents / 100).toFixed(2)}, USDC=$${usdcBalance.toFixed(2)}, buying $${minTier}`,
   );
 
-  return topupCredits(apiUrl, account, minTier);
+  return topupCredits(apiUrl, account, minTier, undefined, params.financialOperationsEnabled);
 }

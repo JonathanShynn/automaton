@@ -174,6 +174,7 @@ export const BUILTIN_TASKS: Record<string, HeartbeatTaskFn> = {
         account: taskCtx.identity.account,
         creditsCents: credits,
         chainType: taskCtx.config.chainType || taskCtx.identity.chainType || "evm",
+        financialOperationsEnabled: taskCtx.config.financialOperationsEnabled,
       });
 
       if (result?.success) {

@@ -69,6 +69,7 @@ export function loadConfig(): AutomatonConfig | null {
           ? raw.sandboxId.trim()
           : DEFAULT_CONFIG.sandboxId,
       conwayApiKey: apiKey,
+      financialOperationsEnabled: raw.financialOperationsEnabled === true,
       treasuryPolicy,
       modelStrategy,
       soulConfig,

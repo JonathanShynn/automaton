@@ -66,6 +66,11 @@ Usage:
   automaton --version      Show version
   automaton --help         Show this help
 
+Evaluation fork:
+  Payments and paid provisioning are disabled by default.
+  Model inference can still incur provider charges; use the offline evaluation
+  recipe in docs/evaluation/README.md for a credential-free test.
+
 Environment:
   CONWAY_API_URL           Conway API URL (default: https://api.conway.tech)
   CONWAY_API_KEY           Conway API key (overrides config)
@@ -243,6 +248,7 @@ async function run(): Promise<void> {
     apiUrl: config.conwayApiUrl,
     apiKey,
     sandboxId: config.sandboxId,
+    financialOperationsEnabled: config.financialOperationsEnabled,
   });
 
   // Register automaton identity (one-time, immutable)
@@ -352,6 +358,7 @@ async function run(): Promise<void> {
             account,
             creditsCents,
             chainType: resolvedChainType,
+            financialOperationsEnabled: config.financialOperationsEnabled,
           });
           if (topupResult?.success) {
             logger.info(

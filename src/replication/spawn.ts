@@ -58,6 +58,7 @@ export async function spawnChild(
   db: AutomatonDatabase,
   genesis: GenesisConfig,
   lifecycle?: ChildLifecycle,
+  config?: Pick<AutomatonConfig, "maxChildren" | "childSandboxMemoryMb">,
 ): Promise<ChildAutomaton> {
   // Check child limit from config
   const existing = db
@@ -68,7 +69,10 @@ export async function spawnChild(
         c.status !== "cleaned_up" &&
         c.status !== "failed",
     );
-  const maxChildren = (db as any).config?.maxChildren ?? 3;
+  const maxChildren = config?.maxChildren ?? 3;
+  if (!Number.isSafeInteger(maxChildren) || maxChildren < 0) {
+    throw new Error("Cannot spawn: maxChildren must be a non-negative safe integer");
+  }
   if (existing.length >= maxChildren) {
     throw new Error(
       `Cannot spawn: already at max children (${maxChildren}). Kill or wait for existing children to die.`,
@@ -90,7 +94,7 @@ export async function spawnChild(
     lifecycle.initChild(childId, genesis.name, "", genesis.genesisPrompt, childChainType);
 
     // Get child sandbox memory from config (default 1024MB)
-    const childMemoryMb = (db as any).config?.childSandboxMemoryMb ?? 1024;
+    const childMemoryMb = config?.childSandboxMemoryMb ?? 1024;
 
     // Try to reuse an existing sandbox whose DB record is 'failed' but
     // is still running remotely, before creating a new one.

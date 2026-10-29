@@ -234,7 +234,7 @@ export async function runAgentLoop(
               });
 
               const lifecycle = new ChildLifecycle(db.raw);
-              const child = await spawnChild(conway, identity, db, genesis, lifecycle);
+              const child = await spawnChild(conway, identity, db, genesis, lifecycle, config);
 
               return {
                 address: child.address,
@@ -261,6 +261,7 @@ export async function runAgentLoop(
                       account: identity.account,
                       error: sandboxError,
                       chainType: config.chainType || identity.chainType || "evm",
+                      financialOperationsEnabled: config.financialOperationsEnabled,
                     });
 
                     if (topupResult?.success) {
@@ -279,7 +280,7 @@ export async function runAgentLoop(
                           specialization: `${retryRole}: ${task.title}`,
                         });
                         const retryLifecycle = new RetryLifecycle(db.raw);
-                        const child = await retrySpawn(conway, identity, db, retryGenesis, retryLifecycle);
+                        const child = await retrySpawn(conway, identity, db, retryGenesis, retryLifecycle, config);
                         return {
                           address: child.address,
                           name: child.name,
@@ -456,6 +457,7 @@ export async function runAgentLoop(
                 account: identity.account,
                 creditsCents: financial.creditsCents,
                 chainType: config.chainType || identity.chainType || "evm",
+                financialOperationsEnabled: config.financialOperationsEnabled,
               });
               if (topupResult?.success) {
                 log(config, `[AUTO-TOPUP] Bought $${topupResult.amountUsd} credits from USDC mid-loop`);

@@ -1,6 +1,7 @@
 # Evaluación aislada de Automaton para Agent Zero
 
-Estado actual: [presupuesto compartido y conexión real de Gemini comprobada](GLOBAL_BUDGET.md).
+Estado actual: [integración del ciclo de investigación y ensayo detenido](RESEARCH_CYCLE.md).
+Historial: [presupuesto compartido y conexión simple de Gemini comprobada](GLOBAL_BUDGET.md).
 El sondeo real de una petición pasó en GitHub; el agente continuo sigue pendiente.
 Correcciones anteriores: [HARDENING.md](HARDENING.md).
 La [primera evaluación](ASSESSMENT.md) se conserva como registro histórico.

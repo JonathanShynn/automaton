@@ -1,0 +1,50 @@
+{
+  "date_taipei": "2026-10-29",
+  "research_runtime_commit": "99d6f8da7b64485daef26df270d2f2a724d22cd9",
+  "trial_commit": "afe355aac689b6a21f0a44b4833cca21caa95939",
+  "ci": {
+    "run_id": 40880864224,
+    "url": "https://github.com/JonathanShynn/automaton/actions/runs/40880864224",
+    "node20": "success",
+    "node22": "success",
+    "tests_per_version": 1685,
+    "files": 68,
+    "audit": "no known production vulnerabilities"
+  },
+  "offline_evaluation": {
+    "run_id": 40880854817,
+    "conclusion": "success"
+  },
+  "trial": {
+    "run_id": 40880855069,
+    "job_id": 123471658870,
+    "url": "https://github.com/JonathanShynn/automaton/actions/runs/40880855069",
+    "conclusion": "failure",
+    "first_phase_exit_code": 1,
+    "first_phase_verified": false,
+    "resume_executed": false,
+    "provider_requests": null,
+    "maximum_possible_provider_requests": 1,
+    "reserved_request_slots": 2,
+    "reservation_ref": "refs/tags/evaluation/gemini-research-trial-v1-reserved",
+    "reservation_preserved": true,
+    "raw_state_uploaded": false,
+    "raw_model_logs_published": false,
+    "failure_cause": "unknown; private ephemeral diagnostics unavailable",
+    "continuous_operation_demonstrated": false,
+    "actual_revenue_demonstrated": false
+  },
+  "safer_publication": {
+    "automatic_review_rejected_state_upload": true,
+    "reason": "State database includes prompts/responses not explicitly authorized for public artifact upload",
+    "resolution": "Removed state artifact; raw logs private to disposable runner; only fixed integer/boolean summaries published"
+  },
+  "followup": {
+    "safe_failure_diagnostics_added": true,
+    "local_focused_tests_passed": 14,
+    "live_retry_authorized": false,
+    "trial_workflow_retired": true,
+    "render_resources_created": false,
+    "original_agentzero_modified": false
+  }
+}

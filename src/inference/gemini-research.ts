@@ -35,12 +35,17 @@ export function createGeminiResearchInference(model: string, sharedBudget: Infer
         ...textMessages,
       ], response_format: { type: "json_object" } };
       return budget.run({ provider: "gemini", model, payload, maxOutputTokens: options?.maxTokens, actor: "research-parent" }, async limit => {
+        let failureCode = 1; // 1 transport, 2 incomplete, 3 JSON, 4 schema, 5 action
         try {
           const completion = await client.chat.completions.create({ ...payload, max_tokens: limit, stream: false } as any);
+          failureCode = 2;
           const raw = completion.choices[0]?.message?.content;
           if (completion.choices[0]?.finish_reason !== "stop" || !raw) throw new Error("Incomplete response");
+          failureCode = 3;
           const parsed = JSON.parse(raw);
+          failureCode = 4;
           if (!parsed || typeof parsed.content !== "string" || !Array.isArray(parsed.actions) || parsed.actions.length > 3) throw new Error("Invalid research response");
+          failureCode = 5;
           const calls: InferenceToolCall[] = parsed.actions.map((action: any) => {
             if (!action || !offered.has(action.name) || !allowed.has(action.name) ||
                 !action.arguments || typeof action.arguments !== "object" || Array.isArray(action.arguments)) throw new Error("Unapproved action");
@@ -52,7 +57,7 @@ export function createGeminiResearchInference(model: string, sharedBudget: Infer
             toolCalls: calls.length ? calls : undefined, usage, finishReason: "stop" };
         } catch {
           // SDK errors may echo credentials or payloads; stop instead of logging them.
-          throw new GlobalBudgetError("Gemini research request failed; operator review required");
+          throw new GlobalBudgetError(`Gemini research request failed [code=${failureCode}]; operator review required`);
         }
       }, result => ({ inputTokens: result.usage.promptTokens, outputTokens: result.usage.completionTokens }));
     },

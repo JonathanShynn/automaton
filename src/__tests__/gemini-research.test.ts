@@ -127,3 +127,19 @@ describe("Research trial authorization", () => {
     expect(JSON.stringify(researchTrialPreflight(env).report)).not.toContain("synthetic-secret");
   });
 });
+
+
+describe("Private research failure diagnostics", () => {
+  it.each([
+    [2, { choices: [{ finish_reason: "length", message: { content: "private incomplete" } }] }],
+    [3, { choices: [{ finish_reason: "stop", message: { content: "private invalid JSON" } }] }],
+    [4, { choices: [{ finish_reason: "stop", message: { content: JSON.stringify({ content: "private text", actions: null }) } }] }],
+    [5, response([{ name: "exec", arguments: {} }])],
+  ])("reports only fixed code %s for an invalid provider response", async (code, completion) => {
+    vi.stubEnv("GEMINI_API_KEY", "synthetic-secret"); const db = open(); sdk.create.mockResolvedValue(completion);
+    const promise = createGeminiResearchInference("gemini-synthetic", gate(db)).chat([{ role: "user", content: "test" }], { tools });
+    await expect(promise).rejects.toThrow(`[code=${code}]`);
+    expect(sdk.create).toHaveBeenCalledTimes(1);
+    expect(db.raw.prepare("SELECT status FROM global_inference_attempts").get()).toEqual({ status: "uncertain" });
+  });
+});

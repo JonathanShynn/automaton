@@ -17,7 +17,8 @@ concurrency:
 
 jobs:
   single-probe:
-    if: github.repository == 'JonathanShynn/automaton' && github.event.repository.private == false
+    # Reservation consumed; this failed trial is retired. No automatic retry.
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 12
     # Only the reservation step receives this token. The inference container does not.
@@ -87,7 +88,7 @@ jobs:
           python3 - <<'PYTHON'
           import json,os
           from pathlib import Path
-          fields={'researchTrialSuccess','turns','providerRequests','factStored','recalled','children','actualRevenueUsd','processPeakRssMiB'}
+          fields={'researchTrialSuccess','turns','providerRequests','factStored','recalled','children','actualRevenueUsd','processPeakRssMiB','failureCode'}
           for stage in ['store','resume']:
               filename=Path(os.environ['RUNNER_TEMP'])/('research-'+stage+'.log')
               reports=[]

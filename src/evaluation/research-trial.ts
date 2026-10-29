@@ -48,6 +48,9 @@ export async function runResearchTrial(args: string[]) {
     const recalled = db.getRecentTurns(1).flatMap(turn => turn.toolCalls).some(call => call.name === "recall_facts" && call.result.includes(TRIAL_FACT));
     if (db.getKV("global_inference_stop") || db.getTurnCount() !== expected + 1 || count() !== expected + 1 ||
         fact?.value !== TRIAL_FACT || (resume && !recalled) || db.getAgentState() !== "sleeping" || db.getChildren().length) {
+      const failureCode = Number(db.getKV("global_inference_stop")?.match(/\[code=(\d+)\]/)?.[1] ?? 6);
+      console.log(JSON.stringify({ researchTrialSuccess: false, failureCode, turns: db.getTurnCount(),
+        providerRequests: count(), processPeakRssMiB: Math.ceil(process.resourceUsage().maxRSS / 1024) }));
       throw new GlobalBudgetError("Research trial assertions failed; no automatic retry");
     }
     console.log(JSON.stringify({ researchTrialSuccess: true, phase: args[0], turns: db.getTurnCount(),

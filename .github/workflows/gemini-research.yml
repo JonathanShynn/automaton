@@ -1,0 +1,105 @@
+name: Bounded Gemini memory and restart trial
+
+on:
+  push:
+    branches: [evaluation/offline-cloud-trial]
+    paths:
+      - .github/workflows/gemini-research.yml
+      - scripts/evaluation/reserve-research-trial.mjs
+      - scripts/evaluation/reserve-research-trial.test.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gemini-research-memory-trial-v1
+  cancel-in-progress: false
+
+jobs:
+  single-probe:
+    if: github.repository == 'JonathanShynn/automaton' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    # Only the reservation step receives this token. The inference container does not.
+    permissions:
+      contents: write
+    env:
+      GEMINI_MODEL: gemini-3.5-flash-lite
+      # Owner confirmed free project in chat on 2026-10-29; scope is a finite research evaluation, with no spending or deployment.
+      GEMINI_FREE_TIER_CONFIRMED: 'true'
+      GEMINI_RESEARCH_TRIAL_APPROVED: 'true'
+      GEMINI_BUDGET_DB_PATH: /state/research.sqlite
+      GEMINI_BUDGET_POLICY_JSON: >-
+        {"enabled":true,"dailyMicros":0,"monthlyMicros":0,"perCallMicros":0,
+        "dailyRequests":2,"monthlyRequests":2,"prices":[{"provider":"gemini",
+        "model":"gemini-3.5-flash-lite","inputMicrosPerMillion":0,"outputMicrosPerMillion":0,
+        "maxInputTokens":32768,"maxOutputTokens":256,"validUntil":"2026-10-31T16:00:00Z"}]}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test reservation denial and concurrency without network
+        run: node --test scripts/evaluation/reserve-research-trial.test.mjs
+      - name: Build reviewed disposable image without credentials
+        run: docker build --tag automaton-gemini-research --file scripts/evaluation/Dockerfile .
+      - name: Validate all probe inputs without provider network
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges --memory 512m --cpus 1 --pids-limit 64 \
+            --env GEMINI_API_KEY --env GEMINI_MODEL --env GEMINI_FREE_TIER_CONFIRMED \
+            --env GEMINI_RESEARCH_TRIAL_APPROVED --env GEMINI_BUDGET_DB_PATH --env GEMINI_BUDGET_POLICY_JSON \
+            --entrypoint /usr/local/bin/node automaton-gemini-research --input-type=module -e \
+            'import {researchTrialPreflight} from "./dist/evaluation/research-trial.js"; const {report}=researchTrialPreflight(); console.log(JSON.stringify(report)); if (!report.ready) process.exit(1);'
+      - name: Prepare isolated accounting directory
+        run: |
+          mkdir -p "$RUNNER_TEMP/research-trial-state"
+          sudo chown 1000:1000 "$RUNNER_TEMP/research-trial-state"
+          sudo chmod 700 "$RUNNER_TEMP/research-trial-state"
+      - name: Permanently reserve the two-request mission in GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/evaluation/reserve-research-trial.mjs
+      - name: Run the real loop and resume its memory in a separate process
+        id: live
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          umask 077
+          timeout --kill-after=10s 90s docker run --rm --name automaton-gemini-research \
+            --read-only --cap-drop ALL --security-opt no-new-privileges \
+            --memory 512m --cpus 1 --pids-limit 64 \
+            --mount "type=bind,source=$RUNNER_TEMP/research-trial-state,target=/state" \
+            --env GEMINI_API_KEY --env GEMINI_MODEL --env GEMINI_FREE_TIER_CONFIRMED \
+            --env GEMINI_RESEARCH_TRIAL_APPROVED --env GEMINI_BUDGET_DB_PATH --env GEMINI_BUDGET_POLICY_JSON \
+            --entrypoint /usr/local/bin/node automaton-gemini-research dist/evaluation/research-trial.js --store > "$RUNNER_TEMP/research-store.log" 2>&1
+          timeout --kill-after=10s 90s docker run --rm --name automaton-gemini-research \
+            --read-only --cap-drop ALL --security-opt no-new-privileges \
+            --memory 512m --cpus 1 --pids-limit 64 \
+            --mount "type=bind,source=$RUNNER_TEMP/research-trial-state,target=/state" \
+            --env GEMINI_API_KEY --env GEMINI_MODEL --env GEMINI_FREE_TIER_CONFIRMED \
+            --env GEMINI_RESEARCH_TRIAL_APPROVED --env GEMINI_BUDGET_DB_PATH --env GEMINI_BUDGET_POLICY_JSON \
+            --entrypoint /usr/local/bin/node automaton-gemini-research dist/evaluation/research-trial.js --resume > "$RUNNER_TEMP/research-resume.log" 2>&1
+      - name: Publish fixed numeric and boolean evidence only
+        if: always() && steps.live.outcome != 'skipped'
+        run: |
+          python3 - <<'PYTHON'
+          import json,os
+          from pathlib import Path
+          fields={'researchTrialSuccess','turns','providerRequests','factStored','recalled','children','actualRevenueUsd','processPeakRssMiB'}
+          for stage in ['store','resume']:
+              filename=Path(os.environ['RUNNER_TEMP'])/('research-'+stage+'.log')
+              reports=[]
+              if filename.exists():
+                  for line in filename.read_text().splitlines():
+                      if line.startswith('{"researchTrialSuccess":'):
+                          try: reports.append(json.loads(line))
+                          except ValueError: pass
+              report=reports[-1] if reports else {}
+              safe={key:value for key,value in report.items() if key in fields and type(value) in [bool,int]}
+              print(json.dumps({'stage':stage,'verifiedSummary':safe}))
+          PYTHON
+      - name: Remove container without clearing the permanent reservation
+        if: always()
+        run: docker rm --force automaton-gemini-research 2>/dev/null || true

@@ -46,5 +46,19 @@
     "trial_workflow_retired": true,
     "render_resources_created": false,
     "original_agentzero_modified": false
+  },
+  "diagnostic_validation": {
+    "code_commit": "025cede808d008abce5f177a0faa450c8ed21e86",
+    "ci_run_id": 40881644989,
+    "ci_url": "https://github.com/JonathanShynn/automaton/actions/runs/40881644989",
+    "node20": "success",
+    "node22": "success",
+    "tests_per_version": 1689,
+    "files": 68,
+    "audit": "no known production vulnerabilities",
+    "offline_evaluation_run_id": 40881636361,
+    "offline_evaluation": "success",
+    "live_workflow_run_id": 40881636376,
+    "live_workflow": "skipped as intended"
   }
 }

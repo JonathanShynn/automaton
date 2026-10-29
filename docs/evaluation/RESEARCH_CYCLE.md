@@ -87,3 +87,9 @@ Tras este ensayo, falta preparar y evaluar almacenamiento continuo, recuperació
 en un host persistente, retención del historial, cuotas del uso sostenido y tareas
 comerciales con datos reales. Medir un proceso corto no prueba operación 24/7 ni
 que 512 MB alcancen al crecer el historial. AgentZero original permanece intacto.
+
+La versión con diagnósticos `025cede808d008abce5f177a0faa450c8ed21e86` aprobó
+1.689 pruebas en 68 archivos con Node 20 y 22, tipos y auditoría de producción:
+https://github.com/JonathanShynn/automaton/actions/runs/40881644989
+La evaluación aislada aprobó y el ensayo real retirado se omitió, como estaba
+previsto. Estas comprobaciones no hicieron más llamadas reales a Gemini.

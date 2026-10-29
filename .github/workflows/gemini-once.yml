@@ -56,7 +56,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/gemini-probe-state"
           sudo chown 1000:1000 "$RUNNER_TEMP/gemini-probe-state"
-          chmod 700 "$RUNNER_TEMP/gemini-probe-state"
+          sudo chmod 700 "$RUNNER_TEMP/gemini-probe-state"
       - name: Permanently reserve the only provider attempt in GitHub
         env:
           GH_TOKEN: ${{ github.token }}

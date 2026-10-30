@@ -61,6 +61,15 @@ sintéticos de seis ciclos alcanzaron 193 MiB de RSS máxima en esta ejecución 
 no es un pronóstico para un servidor permanente. La evidencia resumida queda en
 [continuity-results.json](continuity-results.json).
 
+GitHub aprobó el código `08d47aef9e1e70fb7d2fa7bbc3473b1fa3db95d9`:
+[CI con Node 20 y 22](https://github.com/JonathanShynn/automaton/actions/runs/41007780328),
+1.696 pruebas en 68 archivos por versión, tipos correctos y auditoría de producción
+sin vulnerabilidades conocidas. La
+[evaluación Docker sin red](https://github.com/JonathanShynn/automaton/actions/runs/41007775599)
+aprobó las 12 pruebas en 21,78 segundos. Allí los procesos de los seis ciclos
+alcanzaron 172 MiB de RSS máxima. Solo salieron indicadores resumidos del ensayo;
+no se subió ninguna base SQLite como artefacto.
+
 ## Límites y siguiente decisión
 
 Esto demuestra continuidad de procesos y una política conservadora frente a

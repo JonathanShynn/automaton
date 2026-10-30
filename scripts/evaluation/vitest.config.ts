@@ -6,7 +6,7 @@ import path from "node:path";
 export default {
   cacheDir: path.join(os.tmpdir(), "automaton-evaluation-vite"),
   test: {
-    include: ["scripts/evaluation/offline.test.ts"],
+    include: ["scripts/evaluation/offline.test.ts", "scripts/evaluation/continuity.test.ts"],
     testTimeout: 20_000,
     teardownTimeout: 5_000,
     minWorkers: 1,

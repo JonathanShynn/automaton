@@ -2,6 +2,9 @@
 
 Fecha: 29 de octubre de 2026 (Taiwán).
 
+Actualización del 30 de octubre: [continuidad con seis ciclos simulados y ensayos
+de interrupción](CONTINUITY.md). No se realizaron nuevas peticiones reales.
+
 ## Resultado actual: ciclo real y checkpoint comprobados
 
 El propietario autorizó dos solicitudes gratuitas adicionales. La primera produjo

@@ -32,7 +32,7 @@ jobs:
         run: docker build --tag automaton-offline-evaluation --file scripts/evaluation/Dockerfile .
       - name: Run without network, secrets, host mounts, or writable application files
         run: |
-          timeout --kill-after=10s 90s docker run --rm \
+          timeout --kill-after=10s 180s docker run --rm \
             --name automaton-offline-evaluation \
             --network none \
             --read-only \

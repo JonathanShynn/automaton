@@ -1,6 +1,7 @@
 # Evaluación aislada de Automaton para Agent Zero
 
-Estado actual: [ciclo real de Gemini y recuperación de SQLite comprobados](RESEARCH_CYCLE.md).
+Estado actual: [seis ciclos simulados, reinicios y bloqueo de tareas interrumpidas comprobados](CONTINUITY.md).
+Prueba real anterior: [un ciclo de Gemini y recuperación de SQLite](RESEARCH_CYCLE.md).
 Historial: [presupuesto compartido y conexión simple de Gemini comprobada](GLOBAL_BUDGET.md).
 El sondeo real de una petición pasó en GitHub; el agente continuo sigue pendiente.
 Correcciones anteriores: [HARDENING.md](HARDENING.md).
@@ -34,7 +35,7 @@ Desde la raíz del repositorio:
 
 ```sh
 docker build -t automaton-offline-evaluation -f scripts/evaluation/Dockerfile .
-timeout --kill-after=10s 90s docker run --rm \
+timeout --kill-after=10s 180s docker run --rm \
   --name automaton-offline-evaluation \
   --network none --read-only --cap-drop ALL \
   --security-opt no-new-privileges \
@@ -65,7 +66,7 @@ pnpm install --frozen-lockfile
 pnpm run typecheck
 pnpm exec tsc --project scripts/evaluation/tsconfig.json
 pnpm run build
-timeout --kill-after=10s 90s python3 scripts/evaluation/run-offline.py \
+timeout --kill-after=10s 180s python3 scripts/evaluation/run-offline.py \
   "$(command -v node)" node_modules/vitest/vitest.mjs run \
   --config scripts/evaluation/vitest.config.ts
 ```

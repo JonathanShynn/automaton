@@ -171,3 +171,35 @@ describe("Research response compatibility and offline checkpoint", () => {
     expect(evidence.additionalProviderRequests).toBe(0);expect(sdk.create).not.toHaveBeenCalled();
   });
 });
+
+describe("Durable research cycle admission", () => {
+  it("skips a completed identifier after reopening SQLite, without constructing another SDK client", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "synthetic-secret");
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "research-receipt-")); directories.push(dir);
+    const filename = path.join(dir, "state.db"); let db = open(filename);
+    sdk.create.mockResolvedValue(response([{ name: "sleep", arguments: { duration_seconds: 60 } }]));
+    const options = { model: "gemini-synthetic", mission: "Synthetic receipt", cycleId: "unique-cycle", maxTurns: 1 };
+    await runGeminiResearchCycle({ ...options, db, budget: gate(db) });
+    db.close(); databases.splice(databases.indexOf(db), 1); db = open(filename);
+    sdk.ctor.mockClear(); sdk.create.mockClear(); vi.stubEnv("GEMINI_API_KEY", "");
+    await runGeminiResearchCycle({ ...options, db, budget: gate(db) });
+    expect(sdk.ctor).not.toHaveBeenCalled(); expect(sdk.create).not.toHaveBeenCalled();
+    expect(db.getTurnCount()).toBe(1);
+    expect(db.raw.prepare("SELECT status FROM research_cycle_receipts").get()).toEqual({ status: "completed" });
+    await expect(runGeminiResearchCycle({ ...options, mission: "Different instructions", db, budget: gate(db) })).rejects.toThrow("different instructions");
+  });
+
+  it.each(["../bad", "", "x".repeat(101)])("denies invalid cycle identifier %s before SDK initialization", async cycleId => {
+    const db = open();
+    await expect(runGeminiResearchCycle({ db, budget: gate(db), model: "gemini-synthetic", mission: "Synthetic", cycleId })).rejects.toThrow("identifier");
+    expect(sdk.ctor).not.toHaveBeenCalled();
+  });
+
+  it("does not mark a swallowed model failure as a completed cycle", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "synthetic-secret"); const db = open();
+    sdk.create.mockRejectedValue(new Error("private transport details"));
+    await expect(runGeminiResearchCycle({ db, budget: gate(db), model: "gemini-synthetic", mission: "Synthetic", cycleId: "failed" })).rejects.toThrow("replay disabled");
+    expect(db.raw.prepare("SELECT status,failure_code FROM research_cycle_receipts").get()).toEqual({ status: "review", failure_code: "CYCLE_INCOMPLETE" });
+    expect(JSON.stringify(db.raw.prepare("SELECT * FROM research_cycle_receipts").all())).not.toContain("private transport details");
+  });
+});

@@ -1,0 +1,98 @@
+{
+  "date_taipei": "2026-10-30",
+  "mode": "offline deterministic fixtures with real Automaton loop and SQLite",
+  "live_provider_requests": 0,
+  "financial_operations": false,
+  "paid_resources_created": false,
+  "sequential_trial": {
+    "completed_cycles": 6,
+    "separate_cycle_processes": 6,
+    "completed_replays_skipped": 6,
+    "restored_previous_memories": 5,
+    "fixture_requests": 6,
+    "stored_facts": 6,
+    "persisted_turns": 6,
+    "children": 0,
+    "local_peak_rss_mib": 193
+  },
+  "crash_scenarios": [
+    {
+      "point": "after reservation before fixture response",
+      "signal": "SIGKILL",
+      "facts": 0,
+      "turns": 0,
+      "attempt_status": "reserved",
+      "automatic_replay_blocked": true
+    },
+    {
+      "point": "after tools before turn persistence",
+      "signal": "SIGKILL",
+      "facts": 1,
+      "turns": 0,
+      "attempt_status": "completed",
+      "automatic_replay_blocked": true
+    },
+    {
+      "point": "after turn persistence before completion receipt",
+      "signal": "SIGKILL",
+      "facts": 1,
+      "turns": 1,
+      "attempt_status": "completed",
+      "automatic_replay_blocked": true
+    }
+  ],
+  "other_checks": {
+    "uncertain_transport_attempt_retained": true,
+    "tool_error_requires_review": true,
+    "request_quota_survives_restart": true,
+    "same_identifier_concurrent_admissions": 1,
+    "changed_instructions_rejected": true,
+    "sqlite_integrity": "ok",
+    "inherited_secrets_removed": true,
+    "os_network_denied": true
+  },
+  "local_validation": {
+    "node": "22.23.4",
+    "typecheck": "passed",
+    "evaluation_typecheck": "passed",
+    "full_suite_tests": 1696,
+    "full_suite_files": 68,
+    "full_suite_seconds": 36.54,
+    "isolated_tests": 12,
+    "isolated_files": 2,
+    "isolated_seconds": 16.22,
+    "focused_tests": 21
+  },
+  "github_validation": {
+    "ci": {
+      "run_id": 41007780328,
+      "url": "https://github.com/JonathanShynn/automaton/actions/runs/41007780328",
+      "conclusion": "success",
+      "node20_job": 123906480125,
+      "node22_job": 123906479968,
+      "tests_per_node": 1696,
+      "files_per_node": 68,
+      "typecheck": "passed",
+      "production_audit": "no known vulnerabilities found"
+    },
+    "isolated": {
+      "run_id": 41007775599,
+      "url": "https://github.com/JonathanShynn/automaton/actions/runs/41007775599",
+      "job": 123906464954,
+      "conclusion": "success",
+      "tests": 12,
+      "files": 2,
+      "seconds": 21.78,
+      "peak_cycle_process_rss_mib": 172,
+      "live_provider_requests": 0
+    }
+  },
+  "limits": [
+    "Replay protection applies only to research calls supplied a stable cycleId.",
+    "One SQLite database and trusted code; no distributed or hostile-code guarantee.",
+    "Interrupted or failed cycles require review, not automatic recovery or retry.",
+    "No exactly-once external-effect guarantee and no commercial success validation.",
+    "Short synthetic trial, not 24 hours or repeated live Gemini decisions."
+  ],
+  "tested_code_commit": "08d47aef9e1e70fb7d2fa7bbc3473b1fa3db95d9"
+}

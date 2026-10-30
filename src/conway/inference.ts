@@ -1,3 +1,4 @@
+import { requireInferenceBudget, type InferenceBudgetExecutor } from "../inference/global-budget.js";
 /**
  * Conway Inference Client
  *
@@ -19,6 +20,7 @@ import { ResilientHttpClient } from "./http-client.js";
 const INFERENCE_TIMEOUT_MS = 60_000;
 
 interface InferenceClientOptions {
+  globalBudget?: InferenceBudgetExecutor;
   apiUrl: string;
   apiKey: string;
   defaultModel: string;
@@ -51,6 +53,7 @@ export function createInferenceClient(
   const { apiUrl, apiKey, openaiApiKey, anthropicApiKey, ollamaBaseUrl, getModelProvider } = options;
   const httpClient = new ResilientHttpClient({
     baseTimeout: INFERENCE_TIMEOUT_MS,
+    maxRetries: 0,
     retryableStatuses: [429, 500, 502, 503, 504],
     allowHttpOnLoopback: isLoopbackHttpUrl(ollamaBaseUrl),
   });
@@ -75,58 +78,63 @@ export function createInferenceClient(
     // Ollama always uses max_tokens.
     const usesCompletionTokens =
       backend !== "ollama" && /^(o[1-9]|gpt-5|gpt-4\.1)/.test(model);
-    const tokenLimit = opts?.maxTokens || maxTokens;
+    const executeRequest = async (tokenLimit: number): Promise<InferenceResponse> => {
 
-    const body: Record<string, unknown> = {
-      model,
-      messages: messages.map(formatMessage),
-      stream: false,
-    };
-
-    if (usesCompletionTokens) {
-      body.max_completion_tokens = tokenLimit;
-    } else {
-      body.max_tokens = tokenLimit;
-    }
-
-    if (opts?.temperature !== undefined) {
-      body.temperature = opts.temperature;
-    }
-
-    if (tools && tools.length > 0) {
-      body.tools = tools;
-      body.tool_choice = "auto";
-    }
-
-    if (backend === "anthropic") {
-      return chatViaAnthropic({
+      const body: Record<string, unknown> = {
         model,
-        tokenLimit,
-        messages,
-        tools,
-        temperature: opts?.temperature,
-        anthropicApiKey: anthropicApiKey as string,
+        messages: messages.map(formatMessage),
+        stream: false,
+      };
+
+      if (usesCompletionTokens) {
+        body.max_completion_tokens = tokenLimit;
+      } else {
+        body.max_tokens = tokenLimit;
+      }
+
+      if (opts?.temperature !== undefined) {
+        body.temperature = opts.temperature;
+      }
+
+      if (tools && tools.length > 0) {
+        body.tools = tools;
+        body.tool_choice = "auto";
+      }
+
+      if (backend === "anthropic") {
+        return chatViaAnthropic({
+          model,
+          tokenLimit,
+          messages,
+          tools,
+          temperature: opts?.temperature,
+          anthropicApiKey: anthropicApiKey as string,
+          httpClient,
+        });
+      }
+
+      const openAiLikeApiUrl =
+        backend === "openai" ? "https://api.openai.com" :
+        backend === "ollama" ? (ollamaBaseUrl as string).replace(/\/$/, "") :
+        apiUrl;
+      const openAiLikeApiKey =
+        backend === "openai" ? (openaiApiKey as string) :
+        backend === "ollama" ? "ollama" :
+        apiKey;
+
+      return chatViaOpenAiCompatible({
+        model,
+        body,
+        apiUrl: openAiLikeApiUrl,
+        apiKey: openAiLikeApiKey,
+        backend,
         httpClient,
       });
-    }
-
-    const openAiLikeApiUrl =
-      backend === "openai" ? "https://api.openai.com" :
-      backend === "ollama" ? (ollamaBaseUrl as string).replace(/\/$/, "") :
-      apiUrl;
-    const openAiLikeApiKey =
-      backend === "openai" ? (openaiApiKey as string) :
-      backend === "ollama" ? "ollama" :
-      apiKey;
-
-    return chatViaOpenAiCompatible({
-      model,
-      body,
-      apiUrl: openAiLikeApiUrl,
-      apiKey: openAiLikeApiKey,
-      backend,
-      httpClient,
-    });
+    };
+    return requireInferenceBudget(options.globalBudget).run({
+      provider: backend, model, payload: { messages, tools },
+      maxOutputTokens: opts?.maxTokens ?? maxTokens, actor: "parent",
+    }, executeRequest, result => ({ inputTokens: result.usage.promptTokens, outputTokens: result.usage.completionTokens }));
   };
 
   /**

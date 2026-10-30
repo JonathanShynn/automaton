@@ -1,0 +1,119 @@
+name: Three authorized Gemini continuity cycles
+
+on:
+  push:
+    branches: [evaluation/offline-cloud-trial]
+    paths:
+      - .github/workflows/gemini-continuity.yml
+      - scripts/evaluation/reserve-continuity-cycle.mjs
+      - scripts/evaluation/reserve-continuity-cycle.test.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gemini-continuity-trial-v1
+  cancel-in-progress: false
+
+jobs:
+  continuity:
+    # All three authorized requests were used successfully. Preserve reservations.
+    if: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    env:
+      GEMINI_MODEL: gemini-3.5-flash-lite
+      GEMINI_FREE_TIER_CONFIRMED: 'true'
+      GEMINI_CONTINUITY_TRIAL_APPROVED: 'true'
+      GEMINI_BUDGET_DB_PATH: /state/gemini-continuity-v1.sqlite
+      GEMINI_BUDGET_POLICY_JSON: >-
+        {"enabled":true,"dailyMicros":0,"monthlyMicros":0,"perCallMicros":0,
+        "dailyRequests":3,"monthlyRequests":3,"prices":[{"provider":"gemini",
+        "model":"gemini-3.5-flash-lite","inputMicrosPerMillion":0,"outputMicrosPerMillion":0,
+        "maxInputTokens":32768,"maxOutputTokens":256,"validUntil":"2026-10-31T16:00:00Z"}]}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test fixed reservations without network
+        run: python3 scripts/evaluation/run-offline.py "$(command -v node)" --test scripts/evaluation/reserve-continuity-cycle.test.mjs
+      - name: Build image without credentials
+        run: docker build --tag automaton-gemini-continuity --file scripts/evaluation/Dockerfile .
+      - name: Test trial phases with a mock model and no network or keys
+        run: |
+          timeout --kill-after=10s 60s docker run --rm --network none --read-only \
+            --cap-drop ALL --security-opt no-new-privileges --memory 2g --cpus 2 --pids-limit 128 \
+            --tmpfs /tmp:rw,nosuid,nodev,size=256m,mode=1777 \
+            --tmpfs /state:rw,nosuid,nodev,size=32m,mode=1777 \
+            --entrypoint /bin/sh automaton-gemini-continuity -c '
+            cp scripts/evaluation/continuity-live.vitest.config.ts /tmp/continuity-live.config.ts
+            exec python3 scripts/evaluation/run-offline.py /usr/local/bin/node node_modules/vitest/vitest.mjs run --config /tmp/continuity-live.config.ts'
+      - name: Validate model and budget inputs without a provider request
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges \
+            --memory 512m --cpus 1 --pids-limit 64 --env GEMINI_API_KEY --env GEMINI_MODEL \
+            --env GEMINI_FREE_TIER_CONFIRMED --env GEMINI_CONTINUITY_TRIAL_APPROVED \
+            --env GEMINI_BUDGET_DB_PATH --env GEMINI_BUDGET_POLICY_JSON \
+            --entrypoint /usr/local/bin/node automaton-gemini-continuity --input-type=module -e \
+            'import {continuityTrialPreflight} from "./dist/evaluation/gemini-continuity-trial.js"; const {report}=continuityTrialPreflight(); console.log(JSON.stringify(report)); if (!report.ready) process.exit(1);'
+      - name: Prepare shared SQLite directory for the three separate containers
+        run: |
+          mkdir -p "$RUNNER_TEMP/gemini-continuity-state"
+          sudo chown 1000:1000 "$RUNNER_TEMP/gemini-continuity-state"
+          sudo chmod 700 "$RUNNER_TEMP/gemini-continuity-state"
+      - name: Reserve cycle 1 permanently in GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTINUITY_CYCLE: '1'
+        run: node scripts/evaluation/reserve-continuity-cycle.mjs
+      - name: Cycle 1 - store a synthetic offer
+        id: cycle1
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: bash scripts/evaluation/run-continuity-container.sh 1
+      - name: Reserve cycle 2 only after the first checkpoint passes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTINUITY_CYCLE: '2'
+        run: node scripts/evaluation/reserve-continuity-cycle.mjs
+      - name: Cycle 2 - recover the offer and calculate unit contribution
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: bash scripts/evaluation/run-continuity-container.sh 2
+      - name: Reserve cycle 3 only after the second checkpoint passes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTINUITY_CYCLE: '3'
+        run: node scripts/evaluation/reserve-continuity-cycle.mjs
+      - name: Cycle 3 - recover prior work and calculate assumed profit
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: bash scripts/evaluation/run-continuity-container.sh 3
+      - name: Verify all checkpoints in a fourth container with no network or API key
+        run: bash scripts/evaluation/run-continuity-container.sh verify
+      - name: Publish only fixed numeric and boolean summaries
+        if: always() && steps.cycle1.outcome != 'skipped'
+        run: |
+          python3 - <<'PYTHON'
+          import json,os
+          from pathlib import Path
+          fields={'geminiContinuitySuccess','phase','turns','providerRequests','completedCycles','factStored','recalled','children','actualRevenueUsd','processPeakRssMiB','failureCode','failureShape','checkpointReopened','additionalProviderRequests'}
+          for stage in ['1','2','3','verify']:
+              filename=Path(os.environ['RUNNER_TEMP'])/('gemini-continuity-'+stage+'.log')
+              reports=[]
+              if filename.exists():
+                  for line in filename.read_text().splitlines():
+                      if line.startswith('{"geminiContinuitySuccess":'):
+                          try: reports.append(json.loads(line))
+                          except ValueError: pass
+              report=reports[-1] if reports else {}
+              safe={key:value for key,value in report.items() if key in fields and type(value) in [bool,int]}
+              print(json.dumps({'stage':stage,'verifiedSummary':safe}))
+          PYTHON
+      - name: Remove container without deleting permanent reservations
+        if: always()
+        run: docker rm --force automaton-gemini-continuity 2>/dev/null || true

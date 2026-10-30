@@ -1,0 +1,131 @@
+{
+  "date_taipei": "2026-10-29",
+  "upstream_commit": "d8f816881fd24b6f5e3d616e59edec387a447667",
+  "local_environment": {
+    "node": "22.23.4",
+    "pnpm": "10.28.1",
+    "network": "seccomp socket/connect/send syscalls denied; environment scrubbed; extra descriptors closed"
+  },
+  "checks": {
+    "upstream_typecheck": "passed",
+    "upstream_build": "passed",
+    "evaluation_typecheck": "passed",
+    "full_upstream_suite": {
+      "status": "incomplete",
+      "exit_code": 124,
+      "timeout_seconds": 240,
+      "all_tests_passed": false
+    },
+    "core": {
+      "success": true,
+      "total_tests": 390,
+      "passed_tests": 390,
+      "failed_tests": 0,
+      "duration_ms": 7109,
+      "files": [
+        {
+          "path": "src/__tests__/command-injection.test.ts",
+          "status": "passed",
+          "test_count": 102
+        },
+        {
+          "path": "src/__tests__/data-layer.test.ts",
+          "status": "passed",
+          "test_count": 62
+        },
+        {
+          "path": "src/__tests__/database-transactions.test.ts",
+          "status": "passed",
+          "test_count": 17
+        },
+        {
+          "path": "src/__tests__/financial.test.ts",
+          "status": "passed",
+          "test_count": 23
+        },
+        {
+          "path": "src/__tests__/heartbeat-scheduler.test.ts",
+          "status": "passed",
+          "test_count": 20
+        },
+        {
+          "path": "src/__tests__/injection-defense.test.ts",
+          "status": "passed",
+          "test_count": 56
+        },
+        {
+          "path": "src/__tests__/memory.test.ts",
+          "status": "passed",
+          "test_count": 84
+        },
+        {
+          "path": "src/__tests__/policy-engine.test.ts",
+          "status": "passed",
+          "test_count": 26
+        }
+      ]
+    },
+    "evaluation": {
+      "success": true,
+      "total_tests": 4,
+      "passed_tests": 4,
+      "failed_tests": 0,
+      "duration_ms": 1513,
+      "files": [
+        {
+          "path": "scripts/evaluation/offline.test.ts",
+          "status": "passed",
+          "test_count": 4
+        }
+      ]
+    },
+    "upstream_security_cli": {
+      "status": "invalid_option_reproduced",
+      "vitest": "2.1.9",
+      "error": "CACError: Unknown option --grep"
+    }
+  },
+  "dependency_audit": {
+    "status": "not_clean",
+    "counts": {
+      "info": 0,
+      "low": 0,
+      "moderate": 9,
+      "high": 10,
+      "critical": 2
+    },
+    "counts_note": "pnpm metadata counts include dependency paths; advisory list has 18 distinct entries"
+  },
+  "github_container_evaluation": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_id": 40733499208,
+    "job_id": 122975763628,
+    "commit": "933421755021b0b1232cdf21fb84db5a4fdf40c6",
+    "url": "https://github.com/JonathanShynn/automaton/actions/runs/40733499208",
+    "tests_passed": 4,
+    "tests_failed": 0,
+    "duration_seconds": 2.07,
+    "base_image_digest": "sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
+    "controls": [
+      "network none",
+      "application read-only",
+      "non-root user",
+      "all capabilities dropped",
+      "no-new-privileges",
+      "2GiB memory limit",
+      "2 CPU limit",
+      "128 PID limit",
+      "256MiB tmpfs",
+      "90-second runtime timeout",
+      "12-minute job timeout",
+      "no secret environment passed or host volume mounted"
+    ],
+    "first_attempt": {
+      "run_id": 40733046186,
+      "conclusion": "failure",
+      "cause": "Vite temporary config attempted write beside read-only source",
+      "resolution": "Copy dependency-free evaluation configuration to /tmp before starting test runner"
+    }
+  }
+}

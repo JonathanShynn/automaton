@@ -1,3 +1,4 @@
+import { GlobalBudgetError, type InferenceBudgetExecutor } from "../inference/global-budget.js";
 /**
  * The Agent Loop
  *
@@ -72,6 +73,9 @@ const MAX_CONSECUTIVE_ERRORS = 5;
 const MAX_REPETITIVE_TURNS = 3;
 
 export interface AgentLoopOptions {
+  /** Bounded local-memory research: no Conway, wallets, orchestration or external tools. */
+  researchOnly?: boolean;
+  globalBudget?: InferenceBudgetExecutor;
   identity: AutomatonIdentity;
   config: AutomatonConfig;
   db: AutomatonDatabase;
@@ -96,8 +100,19 @@ export async function runAgentLoop(
   const { identity, config, db, conway, inference, social, skills, policyEngine, spendTracker, onStateChange, onTurnComplete, ollamaBaseUrl } =
     options;
 
-  const builtinTools = createBuiltinTools(identity.sandboxId);
-  const installedTools = loadInstalledTools(db);
+  const researchOnly = options.researchOnly === true;
+  if (researchOnly && (!options.globalBudget || config.financialOperationsEnabled !== false ||
+      config.maxChildren !== 0 || !Number.isInteger(config.maxTurnsPerCycle) ||
+      config.maxTurnsPerCycle! < 1 || config.maxTurnsPerCycle! > 5 || social || ollamaBaseUrl ||
+      !/^gemini-[a-zA-Z0-9_.-]{1,100}$/.test(inference.getDefaultModel()))) {
+    throw new GlobalBudgetError("Research mode requires a shared budget, Gemini, 1-5 turns, payments off and no children/social/Ollama");
+  }
+  const allowedResearchTools = new Set(["remember_fact", "recall_facts", "sleep"]);
+  const builtinTools = createBuiltinTools(identity.sandboxId).filter(tool => !researchOnly || allowedResearchTools.has(tool.name));
+  const installedTools = researchOnly ? [] : loadInstalledTools(db);
+  const readFinancialState = () => researchOnly
+    ? Promise.resolve({ creditsCents: 0, usdcBalance: 0, lastChecked: new Date().toISOString() })
+    : getFinancialState(conway, identity.address, db, config.chainType || identity.chainType || "evm");
   const tools = [...builtinTools, ...installedTools];
   const toolContext: ToolContext = {
     identity,
@@ -117,7 +132,7 @@ export async function runAgentLoop(
   modelRegistry.initialize();
 
   // Discover Ollama models if configured
-  if (ollamaBaseUrl) {
+  if (!researchOnly && ollamaBaseUrl) {
     const { discoverOllamaModels } = await import("../ollama/discover.js");
     await discoverOllamaModels(ollamaBaseUrl, db.raw);
   }
@@ -129,7 +144,7 @@ export async function runAgentLoop(
   let orchestrator: Orchestrator | undefined;
   let workerPool: LocalWorkerPool | undefined;
 
-  if (hasTable(db.raw, "goals")) {
+  if (!researchOnly && hasTable(db.raw, "goals")) {
     try {
       planModeController = new PlanModeController(db.raw);
 
@@ -169,7 +184,7 @@ export async function runAgentLoop(
         registry.overrideBaseUrl("openai", process.env.OPENAI_BASE_URL);
       }
 
-      const unifiedInference = new UnifiedInferenceClient(registry);
+      const unifiedInference = new UnifiedInferenceClient(registry, options.globalBudget);
       const agentTracker = new SimpleAgentTracker(db);
       const funding = new SimpleFundingProtocol(conway, identity, db);
       const messaging = new ColonyMessaging(
@@ -234,7 +249,7 @@ export async function runAgentLoop(
               });
 
               const lifecycle = new ChildLifecycle(db.raw);
-              const child = await spawnChild(conway, identity, db, genesis, lifecycle);
+              const child = await spawnChild(conway, identity, db, genesis, lifecycle, config);
 
               return {
                 address: child.address,
@@ -261,6 +276,7 @@ export async function runAgentLoop(
                       account: identity.account,
                       error: sandboxError,
                       chainType: config.chainType || identity.chainType || "evm",
+                      financialOperationsEnabled: config.financialOperationsEnabled,
                     });
 
                     if (topupResult?.success) {
@@ -279,7 +295,7 @@ export async function runAgentLoop(
                           specialization: `${retryRole}: ${task.title}`,
                         });
                         const retryLifecycle = new RetryLifecycle(db.raw);
-                        const child = await retrySpawn(conway, identity, db, retryGenesis, retryLifecycle);
+                        const child = await retrySpawn(conway, identity, db, retryGenesis, retryLifecycle, config);
                         return {
                           address: child.address,
                           name: child.name,
@@ -358,13 +374,13 @@ export async function runAgentLoop(
   onStateChange?.("waking");
 
   // Get financial state
-  let financial = await getFinancialState(conway, identity.address, db, config.chainType || identity.chainType || "evm");
+  let financial = await readFinancialState();
 
   // Check if this is the first run
   const isFirstRun = db.getTurnCount() === 0;
 
   // Build wakeup prompt
-  const wakeupInput = buildWakeupPrompt({
+  const wakeupInput = researchOnly ? config.genesisPrompt : buildWakeupPrompt({
     identity,
     config,
     financial,
@@ -375,7 +391,7 @@ export async function runAgentLoop(
   db.setAgentState("running");
   onStateChange?.("running");
 
-  log(config, `[WAKE UP] ${config.name} is alive. Credits: $${(financial.creditsCents / 100).toFixed(2)}`);
+  log(config, researchOnly ? `[WAKE UP] ${config.name}: bounded research; balances not queried` : `[WAKE UP] ${config.name} is alive. Credits: $${(financial.creditsCents / 100).toFixed(2)}`);
 
   // ─── The Loop ──────────────────────────────────────────────
 
@@ -426,12 +442,14 @@ export async function runAgentLoop(
       }
 
       // Refresh financial state periodically
-      financial = await getFinancialState(conway, identity.address, db, config.chainType || identity.chainType || "evm");
+      financial = await readFinancialState();
 
       // Check survival tier
       // api_unreachable: creditsCents === -1 means API failed with no cache.
       // Do NOT kill the agent; continue in low-compute mode and retry next tick.
-      if (financial.creditsCents === -1) {
+      if (researchOnly) {
+        inference.setLowComputeMode(false);
+      } else if (financial.creditsCents === -1) {
         log(config, "[API_UNREACHABLE] Balance API unreachable, continuing in low-compute mode.");
         inference.setLowComputeMode(true);
       } else {
@@ -456,12 +474,13 @@ export async function runAgentLoop(
                 account: identity.account,
                 creditsCents: financial.creditsCents,
                 chainType: config.chainType || identity.chainType || "evm",
+                financialOperationsEnabled: config.financialOperationsEnabled,
               });
               if (topupResult?.success) {
                 log(config, `[AUTO-TOPUP] Bought $${topupResult.amountUsd} credits from USDC mid-loop`);
                 // Re-fetch financial state after topup so the rest of
                 // the turn sees the updated balance.
-                financial = await getFinancialState(conway, identity.address, db, config.chainType || identity.chainType || "evm");
+                financial = await readFinancialState();
               }
             } catch (err: any) {
               logger.warn(`Inline auto-topup failed: ${err.message}`);
@@ -501,7 +520,11 @@ export async function runAgentLoop(
       const recentTurns = trimContext(
         meaningfulTurns.length > 0 ? meaningfulTurns : allTurns.slice(-2),
       );
-      const systemPrompt = buildSystemPrompt({
+      const systemPrompt = researchOnly ?
+        "You are a bounded research agent. Only local memory and sleep are available. " +
+        "You have no operational wallet, Conway access, shell, web browsing, external actions or workers. " +
+        "Do not claim real revenue or market validation without evidence. Follow the operator mission. " + config.genesisPrompt
+        : buildSystemPrompt({
         identity,
         config,
         financial,
@@ -597,10 +620,14 @@ export async function runAgentLoop(
 
       // ── Inference Call (via router when available) ──
       const survivalTier = getSurvivalTier(financial.creditsCents);
-      log(config, `[THINK] Routing inference (tier: ${survivalTier}, model: ${inference.getDefaultModel()})...`);
+      log(config, researchOnly ? `[THINK] Bounded research with ${inference.getDefaultModel()}` : `[THINK] Routing inference (tier: ${survivalTier}, model: ${inference.getDefaultModel()})...`);
 
       const inferenceTools = toolsToInferenceFormat(tools);
-      const routerResult = await inferenceRouter.route(
+      const routerResult = researchOnly ? await (async () => {
+        const result = await inference.chat(messages, { model: inference.getDefaultModel(), tools: inferenceTools, maxTokens: modelStrategyConfig.maxTokensPerTurn });
+        return { content: result.message.content || "", toolCalls: result.toolCalls, inputTokens: result.usage.promptTokens,
+          outputTokens: result.usage.completionTokens, costCents: 0, finishReason: result.finishReason };
+      })() : await inferenceRouter.route(
         {
           messages: messages,
           taskType: "agent_turn",
@@ -897,6 +924,15 @@ export async function runAgentLoop(
 
       consecutiveErrors = 0;
     } catch (err: any) {
+      if (err instanceof GlobalBudgetError) {
+        db.setKV("global_inference_stop", err.message);
+        await workerPool?.shutdown();
+        db.setAgentState("sleeping");
+        if (claimedMessages.length) resetInboxToReceived(db.raw, claimedMessages.map(message => message.id));
+        onStateChange?.("sleeping");
+        running = false;
+        break;
+      }
       consecutiveErrors++;
       log(config, `[ERROR] Turn failed: ${err.message}`);
 

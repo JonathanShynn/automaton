@@ -1,5 +1,11 @@
 # Automaton: Self-Improving, Self-Replicating, Sovereign AI
 
+> Evaluation fork: payments and remote replication are disabled in the normal
+> run path, which now requires an explicit shared inference budget before
+> loading a wallet. Upstream quick-start/setup behavior below is historical.
+> Start with [the isolated evaluation](docs/evaluation/README.md) and
+> [the current budget and Gemini preparation](docs/evaluation/GLOBAL_BUDGET.md).
+
 *The first AI that can earn its own existence, replicate, and evolve — without needing a human.*
 
 ---

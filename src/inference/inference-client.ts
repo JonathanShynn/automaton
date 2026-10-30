@@ -1,3 +1,4 @@
+import { requireInferenceBudget, GlobalBudgetError, type InferenceBudgetExecutor } from "./global-budget.js";
 import OpenAI from "openai";
 import type { ChatMessage } from "../types.js";
 import {
@@ -93,7 +94,7 @@ export class UnifiedInferenceClient {
   private readonly registry: ProviderRegistry;
   private readonly circuitBreaker = new Map<string, CircuitBreakerState>();
 
-  constructor(registry: ProviderRegistry) {
+  constructor(registry: ProviderRegistry, private readonly globalBudget?: InferenceBudgetExecutor) {
     this.registry = registry;
   }
 
@@ -194,6 +195,7 @@ export class UnifiedInferenceClient {
         );
         return { result, retries };
       } catch (error) {
+        if (error instanceof GlobalBudgetError) throw error;
         const retryable = this.isRetryableError(error);
         if (!retryable) {
           throw new ProviderAttemptError({
@@ -227,48 +229,54 @@ export class UnifiedInferenceClient {
     requestedTier: ModelTier,
     params: SharedChatParams,
   ): Promise<UnifiedInferenceResult> {
-    const startedAt = Date.now();
-    const payload = this.buildChatCompletionRequest(model.id, params);
-    if (params.stream) {
-      const stream = await client.chat.completions.create({
+    const executeRequest = async (limit: number): Promise<UnifiedInferenceResult> => {
+      const startedAt = Date.now();
+      const payload = this.buildChatCompletionRequest(model.id, { ...params, maxTokens: limit });
+      if (params.stream) {
+        const stream = await client.chat.completions.create({
+          ...payload,
+          stream: true,
+        } as any);
+        const streamed = await this.consumeStreamResponse(stream as any);
+        return this.buildUnifiedResult({
+          providerId,
+          model,
+          requestedTier,
+          latencyMs: Date.now() - startedAt,
+          content: streamed.content,
+          toolCalls: streamed.toolCalls,
+          usage: streamed.usage,
+        });
+      }
+
+      const completion = await client.chat.completions.create({
         ...payload,
-        stream: true,
+        stream: false,
       } as any);
-      const streamed = await this.consumeStreamResponse(stream as any);
+
+      const choice = (completion as any).choices?.[0];
+      if (!choice?.message) {
+        throw new Error(`No completion choice returned from provider '${providerId}'`);
+      }
+
       return this.buildUnifiedResult({
         providerId,
         model,
         requestedTier,
         latencyMs: Date.now() - startedAt,
-        content: streamed.content,
-        toolCalls: streamed.toolCalls,
-        usage: streamed.usage,
+        content: extractText(choice.message.content),
+        toolCalls: normalizeToolCalls(choice.message.tool_calls),
+        usage: {
+          inputTokens: (completion as any).usage?.prompt_tokens ?? 0,
+          outputTokens: (completion as any).usage?.completion_tokens ?? 0,
+          totalTokens: (completion as any).usage?.total_tokens ?? 0,
+        },
       });
-    }
-
-    const completion = await client.chat.completions.create({
-      ...payload,
-      stream: false,
-    } as any);
-
-    const choice = (completion as any).choices?.[0];
-    if (!choice?.message) {
-      throw new Error(`No completion choice returned from provider '${providerId}'`);
-    }
-
-    return this.buildUnifiedResult({
-      providerId,
-      model,
-      requestedTier,
-      latencyMs: Date.now() - startedAt,
-      content: extractText(choice.message.content),
-      toolCalls: normalizeToolCalls(choice.message.tool_calls),
-      usage: {
-        inputTokens: (completion as any).usage?.prompt_tokens ?? 0,
-        outputTokens: (completion as any).usage?.completion_tokens ?? 0,
-        totalTokens: (completion as any).usage?.total_tokens ?? 0,
-      },
-    });
+    };
+    return requireInferenceBudget(this.globalBudget).run({
+      provider: providerId, model: model.id, payload: params,
+      maxOutputTokens: params.maxTokens, actor: "planner-worker",
+    }, executeRequest, result => result.usage);
   }
 
   private buildChatCompletionRequest(modelId: string, params: SharedChatParams): Record<string, unknown> {

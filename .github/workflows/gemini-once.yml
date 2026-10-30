@@ -1,0 +1,93 @@
+name: Single free Gemini connection probe
+
+on:
+  push:
+    branches: [evaluation/offline-cloud-trial]
+    paths:
+      - .github/workflows/gemini-once.yml
+      - scripts/evaluation/reserve-gemini-probe.mjs
+      - scripts/evaluation/reserve-gemini-probe.test.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gemini-single-free-probe-v1
+  cancel-in-progress: false
+
+jobs:
+  single-probe:
+    if: github.repository == 'JonathanShynn/automaton' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    # Only the reservation step receives this token. The inference container does not.
+    permissions:
+      contents: write
+    env:
+      GEMINI_MODEL: gemini-3.5-flash-lite
+      # Owner confirmed free project in chat on 2026-10-29; scope is this fixed probe.
+      GEMINI_FREE_TIER_CONFIRMED: 'true'
+      GEMINI_LIVE_PROBE_APPROVED: 'true'
+      GEMINI_BUDGET_DB_PATH: /state/gemini-probe.sqlite
+      GEMINI_BUDGET_POLICY_JSON: >-
+        {"enabled":true,"dailyMicros":0,"monthlyMicros":0,"perCallMicros":0,
+        "dailyRequests":1,"monthlyRequests":1,"prices":[{"provider":"gemini",
+        "model":"gemini-3.5-flash-lite","inputMicrosPerMillion":0,"outputMicrosPerMillion":0,
+        "maxInputTokens":8192,"maxOutputTokens":256,"validUntil":"2026-10-31T16:00:00Z"}]}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test reservation denial and concurrency without network
+        run: node --test scripts/evaluation/reserve-gemini-probe.test.mjs
+      - name: Build reviewed disposable image without credentials
+        run: docker build --tag automaton-gemini-once --file scripts/evaluation/Dockerfile .
+      - name: Validate all probe inputs without provider network
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          docker run --rm --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges --memory 512m --cpus 1 --pids-limit 64 \
+            --env GEMINI_API_KEY --env GEMINI_MODEL --env GEMINI_FREE_TIER_CONFIRMED \
+            --env GEMINI_LIVE_PROBE_APPROVED --env GEMINI_BUDGET_DB_PATH --env GEMINI_BUDGET_POLICY_JSON \
+            --entrypoint /usr/local/bin/node automaton-gemini-once --input-type=module -e \
+            'import {geminiPreflight} from "./dist/evaluation/gemini-probe.js"; const {report}=geminiPreflight(); console.log(JSON.stringify(report)); if (!report.ready) process.exit(1);'
+      - name: Prepare isolated accounting directory
+        run: |
+          mkdir -p "$RUNNER_TEMP/gemini-probe-state"
+          sudo chown 1000:1000 "$RUNNER_TEMP/gemini-probe-state"
+          sudo chmod 700 "$RUNNER_TEMP/gemini-probe-state"
+      - name: Permanently reserve the only provider attempt in GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/evaluation/reserve-gemini-probe.mjs
+      - name: Make one fixed text request with no tools or alternative provider
+        id: live
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          timeout --kill-after=10s 90s docker run --rm --name automaton-gemini-once \
+            --read-only --cap-drop ALL --security-opt no-new-privileges \
+            --memory 512m --cpus 1 --pids-limit 64 \
+            --mount "type=bind,source=$RUNNER_TEMP/gemini-probe-state,target=/state" \
+            --env GEMINI_API_KEY --env GEMINI_MODEL --env GEMINI_FREE_TIER_CONFIRMED \
+            --env GEMINI_LIVE_PROBE_APPROVED --env GEMINI_BUDGET_DB_PATH --env GEMINI_BUDGET_POLICY_JSON \
+            --entrypoint /usr/local/bin/node automaton-gemini-once dist/evaluation/gemini-probe.js --live
+      - name: Remove container without clearing the permanent reservation
+        if: always()
+        run: docker rm --force automaton-gemini-once 2>/dev/null || true
+      - name: Make the accounting file readable for artifact preservation
+        if: always() && steps.live.outcome != 'skipped'
+        run: |
+          sudo chmod 755 "$RUNNER_TEMP/gemini-probe-state"
+          if [ -f "$RUNNER_TEMP/gemini-probe-state/gemini-probe.sqlite" ]; then
+            sudo chmod 644 "$RUNNER_TEMP/gemini-probe-state/gemini-probe.sqlite"
+          fi
+      - name: Preserve accounting only (no keys or prompts)
+        if: always() && steps.live.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-probe-accounting-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/gemini-probe-state/gemini-probe.sqlite
+          retention-days: 30
+          if-no-files-found: warn

@@ -68,6 +68,10 @@ export interface AutomatonConfig {
   parentAddress?: string;
   socialRelayUrl?: string;
   treasuryPolicy?: TreasuryPolicy;
+  /** Evaluation fork: external payments/provisioning are disabled unless true. */
+  financialOperationsEnabled?: boolean;
+  /** Operator-owned policy for the shared persistent inference ledger. */
+  inferenceBudgetPath?: string;
   // Phase 2 config additions
   soulConfig?: SoulConfig;
   modelStrategy?: ModelStrategyConfig;
@@ -87,6 +91,7 @@ export const DEFAULT_CONFIG: Partial<AutomatonConfig> = {
   version: "0.2.1",
   skillsDir: "~/.automaton/skills",
   maxChildren: 3,
+  financialOperationsEnabled: false,
   maxTurnsPerCycle: 25,
   childSandboxMemoryMb: 1024,
   socialRelayUrl: "https://social.conway.tech",

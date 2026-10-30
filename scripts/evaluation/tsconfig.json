@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "../..", "noEmit": true },
+  "include": ["offline.test.ts", "continuity.test.ts", "vitest.config.ts"],
+  "exclude": []
+}

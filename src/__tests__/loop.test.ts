@@ -19,6 +19,17 @@ import {
 } from "./mocks.js";
 import type { AutomatonDatabase, AgentTurn, AgentState } from "../types.js";
 
+// Loop tests exercise control flow, not public RPC availability or registry
+// discovery. Real transports here made deterministic tests retry for minutes.
+vi.mock("../conway/x402.js", async (original) => ({
+  ...await original<typeof import("../conway/x402.js")>(),
+  getUsdcBalance: vi.fn(async () => 0),
+}));
+vi.mock("../registry/discovery.js", async (original) => ({
+  ...await original<typeof import("../registry/discovery.js")>(),
+  discoverAgents: vi.fn(async () => []),
+}));
+
 describe("Agent Loop", () => {
   let db: AutomatonDatabase;
   let conway: MockConwayClient;

@@ -1,3 +1,4 @@
+import { TEST_TRANSPORT_BUDGET } from "../transport-budget.js";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ProviderRegistry,
@@ -47,7 +48,7 @@ function createDefaultRegistry(): ProviderRegistry {
 }
 
 function createClient(registry = createDefaultRegistry()): UnifiedInferenceClient {
-  return new UnifiedInferenceClient(registry);
+  return new UnifiedInferenceClient(registry, TEST_TRANSPORT_BUDGET);
 }
 
 function queueCompletion(params?: {

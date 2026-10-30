@@ -1,0 +1,117 @@
+{
+  "date_taipei": "2026-10-29",
+  "authorized_additional_requests": 2,
+  "provider_requests_used": 2,
+  "reservation_prefix": "refs/tags/evaluation/gemini-research-trial-v2-slot-",
+  "reservations_preserved": true,
+  "first_attempt": {
+    "run_id": 40884479872,
+    "job_id": 123484402932,
+    "url": "https://github.com/JonathanShynn/automaton/actions/runs/40884479872",
+    "code_commit": "a542bdc7b6f03825bf8385124a37193330aab71f",
+    "summaries": [
+      {
+        "stage": "store",
+        "verifiedSummary": {
+          "researchTrialSuccess": false,
+          "failureCode": 4,
+          "turns": 0,
+          "providerRequests": 1,
+          "processPeakRssMiB": 117
+        }
+      },
+      {
+        "stage": "resume",
+        "verifiedSummary": {}
+      }
+    ],
+    "diagnosis": "Valid JSON received but rejected by the response schema; the specific invalid field was not recorded"
+  },
+  "corrected_attempt": {
+    "run_id": 40885491982,
+    "job_id": 123487957681,
+    "url": "https://github.com/JonathanShynn/automaton/actions/runs/40885491982",
+    "code_commit": "8b2ab0f47e40692195580297dc808137f572412c",
+    "summaries": [
+      {
+        "stage": "store",
+        "verifiedSummary": {
+          "researchTrialSuccess": true,
+          "turns": 1,
+          "providerRequests": 1,
+          "factStored": true,
+          "recalled": false,
+          "children": 0,
+          "actualRevenueUsd": 0,
+          "processPeakRssMiB": 172
+        }
+      },
+      {
+        "stage": "resume",
+        "verifiedSummary": {
+          "researchTrialSuccess": true,
+          "checkpointReopened": true,
+          "factStored": true,
+          "recalled": true,
+          "turns": 1,
+          "providerRequests": 1,
+          "additionalProviderRequests": 0,
+          "processPeakRssMiB": 103
+        }
+      }
+    ],
+    "changes": [
+      "Explanatory content optional; allowed actions remain strictly validated",
+      "Store mission includes an explicit JSON example",
+      "New-process verification opens SQLite read-only and calls local recall without network or model credentials"
+    ]
+  },
+  "validation": {
+    "ci_run_id": 40885500758,
+    "ci_url": "https://github.com/JonathanShynn/automaton/actions/runs/40885500758",
+    "tests_each_node_version": 1691,
+    "files": 68,
+    "jobs": [
+      {
+        "id": 123487989690,
+        "name": "build-and-test (20)",
+        "conclusion": "success"
+      },
+      {
+        "id": 123487989950,
+        "name": "build-and-test (22)",
+        "conclusion": "success"
+      }
+    ],
+    "production_audit": "no known vulnerabilities",
+    "offline_run_id": 40885491529,
+    "offline_conclusion": "success",
+    "local_reservation_tests": 4,
+    "local_focused_tests": 16,
+    "local_complete_tests": 1691
+  },
+  "scope": {
+    "full_research_turn_with_real_gemini": true,
+    "checkpoint_recovered_in_another_process": true,
+    "gemini_turn_after_restart": false,
+    "continuous_24h_operation": false,
+    "commercial_validation": false,
+    "real_revenue": false
+  },
+  "privacy": {
+    "raw_state_uploaded": false,
+    "raw_model_outputs_published": false,
+    "numeric_boolean_summary_only": true
+  },
+  "deployment": {
+    "resources_created": false,
+    "billing_activated": false,
+    "original_agentzero_modified": false,
+    "render_workspace_confirmed": false
+  },
+  "next": [
+    "Agree persistent hosting and operating budget before deploying",
+    "Approve request frequency/quotas before unattended inference",
+    "Measure repeated cycles, recovery and growing history before claiming continuous operation"
+  ]
+}

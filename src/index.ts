@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { GlobalInferenceBudget, GlobalBudgetError, loadGlobalBudgetPolicy } from "./inference/global-budget.js";
 /**
  * Conway Automaton Runtime
  *
@@ -56,7 +57,7 @@ Conway Automaton v${VERSION}
 Sovereign AI Agent Runtime
 
 Usage:
-  automaton --run          Start the automaton (first run triggers setup wizard)
+  automaton --run          Start (requires configuration and an operator budget policy)
   automaton --setup        Re-run the interactive setup wizard
   automaton --configure    Edit configuration (providers, model, treasury, general)
   automaton --pick-model   Interactively pick the active inference model
@@ -65,6 +66,11 @@ Usage:
   automaton --status       Show current automaton status
   automaton --version      Show version
   automaton --help         Show this help
+
+Evaluation fork:
+  Payments and paid provisioning are disabled by default.
+  Model inference can still incur provider charges; use the offline evaluation
+  recipe in docs/evaluation/README.md for a credential-free test.
 
 Environment:
   CONWAY_API_URL           Conway API URL (default: https://api.conway.tech)
@@ -186,12 +192,24 @@ Version:    ${config.version}
 async function run(): Promise<void> {
   logger.info(`[${new Date().toISOString()}] Conway Automaton v${VERSION} starting...`);
 
-  // Load config — first run triggers interactive setup wizard
+  // Budget approval must precede wallet loading and external provisioning.
   let config = loadConfig();
   if (!config) {
-    const { runSetupWizard } = await import("./setup/wizard.js");
-    config = await runSetupWizard();
+    throw new GlobalBudgetError("Runtime configuration is missing; setup must be explicitly requested");
   }
+  const policy = loadGlobalBudgetPolicy(resolvePath(config.inferenceBudgetPath || "~/.automaton/inference-budget.json"));
+  if (!policy.enabled) throw new GlobalBudgetError("Operator policy disables inference");
+  const dbPath = resolvePath(config.dbPath);
+  const db = createDatabase(dbPath);
+  const globalBudget = new GlobalInferenceBudget(db.raw, policy);
+  globalBudget.assertReady();
+  if (db.getKV("global_inference_stop")) throw new GlobalBudgetError("Previous budget stop requires operator review");
+  if (db.getChildren().some(child => !["dead", "failed", "cleaned_up"].includes(child.status))) {
+    throw new GlobalBudgetError("Existing remote children cannot share this ledger; operator review is required");
+  }
+  // Remote replicas cannot share this ledger. Financial operations remain off.
+  config.maxChildren = 0;
+  config.financialOperationsEnabled = false;
 
   // Load wallet (chain-aware)
   const { account, chainIdentity, chainType: walletChainType } = await getWallet();
@@ -202,9 +220,6 @@ async function run(): Promise<void> {
     process.exit(1);
   }
 
-  // Initialize database
-  const dbPath = resolvePath(config.dbPath);
-  const db = createDatabase(dbPath);
 
   // Persist createdAt: only set if not already stored (never overwrite)
   const existingCreatedAt = db.getIdentity("createdAt");
@@ -243,6 +258,7 @@ async function run(): Promise<void> {
     apiUrl: config.conwayApiUrl,
     apiKey,
     sandboxId: config.sandboxId,
+    financialOperationsEnabled: config.financialOperationsEnabled,
   });
 
   // Register automaton identity (one-time, immutable)
@@ -285,6 +301,7 @@ async function run(): Promise<void> {
   const modelRegistry = new ModelRegistry(db.raw);
   modelRegistry.initialize();
   const inference = createInferenceClient({
+    globalBudget,
     apiUrl: config.conwayApiUrl,
     apiKey,
     defaultModel: config.inferenceModel,
@@ -352,6 +369,7 @@ async function run(): Promise<void> {
             account,
             creditsCents,
             chainType: resolvedChainType,
+            financialOperationsEnabled: config.financialOperationsEnabled,
           });
           if (topupResult?.success) {
             logger.info(
@@ -414,6 +432,7 @@ async function run(): Promise<void> {
 
       // Run the agent loop
       await runAgentLoop({
+        globalBudget,
         identity,
         config,
         db,
@@ -434,6 +453,12 @@ async function run(): Promise<void> {
         },
       });
 
+      if (db.getKV("global_inference_stop")) {
+        logger.warn("Global inference budget stopped the runtime; operator review is required.");
+        heartbeat.stop();
+        db.close();
+        break;
+      }
       // Agent loop exited (sleeping or dead)
       const state = db.getAgentState();
 

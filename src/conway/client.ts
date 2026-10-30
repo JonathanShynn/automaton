@@ -28,15 +28,18 @@ import { keccak256, toHex } from "viem";
 import type { Address, PrivateKeyAccount } from "viem";
 import { randomUUID } from "crypto";
 import type { ChainType, ChainIdentity } from "../identity/chain.js";
+import { assertFinancialOperationsEnabled } from "./financial-guard.js";
 
 interface ConwayClientOptions {
   apiUrl: string;
   apiKey: string;
   sandboxId: string;
+  financialOperationsEnabled?: boolean;
 }
 
 export function createConwayClient(options: ConwayClientOptions): ConwayClient {
   const { apiUrl, apiKey } = options;
+  const financialOperationsEnabled = options.financialOperationsEnabled === true;
   // Normalize sandbox ID defensively so values like whitespace/"undefined"/"null"
   // never produce malformed API paths such as /v1/sandboxes//exec.
   const sandboxId = normalizeSandboxId(options.sandboxId);
@@ -252,6 +255,7 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
   const createSandbox = async (
     options: CreateSandboxOptions,
   ): Promise<SandboxInfo> => {
+    assertFinancialOperationsEnabled(financialOperationsEnabled, "create sandbox");
     const result = await request("POST", "/v1/sandboxes", {
       name: options.name,
       vcpu: options.vcpu || 1,
@@ -315,6 +319,7 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
     amountCents: number,
     note?: string,
   ): Promise<CreditTransferResult> => {
+    assertFinancialOperationsEnabled(financialOperationsEnabled, "transfer credits");
     const payload = {
       to_address: toAddress,
       amount_cents: amountCents,
@@ -477,6 +482,7 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
     domain: string,
     years: number = 1,
   ): Promise<DomainRegistration> => {
+    assertFinancialOperationsEnabled(financialOperationsEnabled, "register domain");
     const result = await request("POST", "/v1/domains/register", {
       domain,
       years,
@@ -576,7 +582,7 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
   };
 
   const createScopedClient = (targetSandboxId: string): ConwayClient => {
-    return createConwayClient({ apiUrl, apiKey, sandboxId: targetSandboxId });
+    return createConwayClient({ apiUrl, apiKey, sandboxId: targetSandboxId, financialOperationsEnabled });
   };
 
   const client: ConwayClient = {

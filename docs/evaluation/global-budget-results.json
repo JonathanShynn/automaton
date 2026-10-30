@@ -1,0 +1,155 @@
+{
+  "date_taipei": "2026-10-29",
+  "code_commit": "e870b21057eed5566c5ae3fe52ae5a4521e4e250",
+  "base_commit": "029768fe0d33cb9036806441d4f084afcc61a06a",
+  "checks": {
+    "runtime_typecheck": "passed",
+    "evaluation_typecheck": "passed",
+    "new_tests_typecheck": "passed",
+    "build": "passed",
+    "full_suite": {
+      "numTotalTests": 1675,
+      "numPassedTests": 1675,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "success": true,
+      "files": 67,
+      "duration_ms": 55735
+    },
+    "offline_evaluation": {
+      "numTotalTests": 4,
+      "numPassedTests": 4,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "success": true,
+      "files": 1,
+      "duration_ms": 2916
+    },
+    "production_audit": {
+      "exit_code": 0,
+      "metadata": {
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0
+        },
+        "dependencies": 160,
+        "devDependencies": 0,
+        "optionalDependencies": 0,
+        "totalDependencies": 160
+      },
+      "scope": "production dependencies only"
+    }
+  },
+  "github": {
+    "ci": {
+      "run_id": 40807517841,
+      "url": "https://github.com/JonathanShynn/automaton/actions/runs/40807517841",
+      "conclusion": "success",
+      "node20_job_id": 123229891419,
+      "node22_job_id": 123229890327,
+      "tests_each": 1675
+    },
+    "isolated_container": {
+      "run_id": 40807512432,
+      "url": "https://github.com/JonathanShynn/automaton/actions/runs/40807512432",
+      "job_id": 123229874135,
+      "conclusion": "success",
+      "tests_passed": 4
+    },
+    "gemini_readiness": {
+      "ready": false,
+      "networkRequests": 0,
+      "secretsPrinted": false,
+      "missing": [
+        "GEMINI_API_KEY",
+        "GEMINI_MODEL",
+        "GEMINI_FREE_TIER_CONFIRMED",
+        "GEMINI_LIVE_PROBE_APPROVED",
+        "PERSISTENT_GEMINI_BUDGET_DB_PATH",
+        "GEMINI_BUDGET_POLICY_JSON"
+      ]
+    },
+    "gemini_readiness_after_key_setup": {
+      "ready": false,
+      "missing": [
+        "GEMINI_MODEL",
+        "GEMINI_FREE_TIER_CONFIRMED",
+        "GEMINI_LIVE_PROBE_APPROVED",
+        "PERSISTENT_GEMINI_BUDGET_DB_PATH",
+        "GEMINI_BUDGET_POLICY_JSON"
+      ],
+      "networkRequests": 0,
+      "secretsPrinted": false,
+      "run_id": 40807512432,
+      "run_attempt": 2,
+      "job_id": 123400077613,
+      "checked_at": "2026-10-29T10:44:58Z",
+      "url": "https://github.com/JonathanShynn/automaton/actions/runs/40807512432/attempts/2",
+      "credential_detected": true,
+      "credential_validated_with_provider": false
+    },
+    "gemini_live_probe": {
+      "code_commit": "064f820cf273c13a358783ed1bb61c4327fca3a3",
+      "run_id": 40861242593,
+      "job_id": 123404725824,
+      "conclusion": "success",
+      "url": "https://github.com/JonathanShynn/automaton/actions/runs/40861242593",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "owner_confirmed_free_project": true,
+      "billing_enabled_by_this_work": false,
+      "success": true,
+      "inputTokens": 10,
+      "outputTokens": 6,
+      "nonemptyAnswer": true,
+      "provider_requests": 1,
+      "maximum_output_tokens": 256,
+      "durable_reservation_ref": "refs/tags/evaluation/gemini-free-probe-v1-reserved",
+      "reservation_kept_after_completion": true,
+      "automatic_further_requests": false,
+      "accounting_artifact_id": 12892295136,
+      "accounting_verified": {
+        "zip_sha256": "ffa1d5d865a1dce56b1f1c75f5d7fbe81b6d5215d4a11e31e908991de0e35577",
+        "integrity_check": "ok",
+        "attempt_count": 1,
+        "attempts": [
+          {
+            "actor": "planner-worker",
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "status": "completed",
+            "reserved_micros": 0,
+            "charged_micros": 0,
+            "actual_micros": 0,
+            "created_at": "2026-10-29T10:55:30.395Z"
+          }
+        ]
+      },
+      "zero_micros_scope": "Application accounting under owner-confirmed free plan; provider invoice not inspected",
+      "local_reservation_tests_passed": 5,
+      "local_budget_regressions_passed": 21,
+      "cloud_ci_run_id": 40861250026,
+      "cloud_ci_url": "https://github.com/JonathanShynn/automaton/actions/runs/40861250026",
+      "cloud_ci_node20_tests_passed": 1675,
+      "cloud_ci_node22_tests_passed": 1675,
+      "production_audit_known_findings": 0,
+      "not_demonstrated": [
+        "full_Gemini_agent_loop",
+        "business_validation",
+        "revenue",
+        "continuous_24h_service"
+      ]
+    }
+  },
+  "live_model_requests": 1,
+  "human_handoff": {
+    "reason": "One free Gemini provider request succeeded; connect cloud hosting to inspect persistent deployment options before provisioning. Main Automaton runtime still needs Gemini/Conway integration work.",
+    "github_secret_name": "GEMINI_API_KEY",
+    "key_values_stored": false,
+    "requested_integration": "Railway",
+    "integration_connected": false
+  }
+}

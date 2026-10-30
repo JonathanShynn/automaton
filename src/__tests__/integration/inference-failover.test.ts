@@ -1,3 +1,4 @@
+import { TEST_TRANSPORT_BUDGET } from "../transport-budget.js";
 /**
  * Integration tests for UnifiedInferenceClient failover behavior.
  *
@@ -114,7 +115,7 @@ function makeRegistry(providers: ProviderConfig[], preferredForReasoning?: strin
 }
 
 function makeClient(registry: ProviderRegistry): UnifiedInferenceClient {
-  return new UnifiedInferenceClient(registry);
+  return new UnifiedInferenceClient(registry, TEST_TRANSPORT_BUDGET);
 }
 
 /** Push a successful chat completion onto the mock queue. */

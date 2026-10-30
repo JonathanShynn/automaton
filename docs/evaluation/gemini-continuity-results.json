@@ -1,0 +1,63 @@
+{
+  "date_taipei": "2026-10-30",
+  "tested_code_commit": "b2310ca651ca0bab56784d2f7f15e12fe9367cf0",
+  "authorization": {
+    "maximum_new_requests": 3,
+    "maximum_per_cycle": 1,
+    "actual_new_requests": 3,
+    "previous_reservations_preserved": true,
+    "billing_enabled_by_this_work": false,
+    "paid_resources_created": false,
+    "free_project_confirmed_by_owner": true,
+    "provider_billing_independently_audited": false
+  },
+  "trial": {
+    "run_id": 41009765535,
+    "job_id": 123912756573,
+    "url": "https://github.com/JonathanShynn/automaton/actions/runs/41009765535",
+    "conclusion": "success",
+    "model": "gemini-3.5-flash-lite",
+    "cycles": [
+      {"phase": 1, "success": true, "turns": 1, "provider_requests": 1, "completed_cycles": 1, "fact_stored": true, "recalled": false, "children": 0, "actual_revenue_usd": 0, "peak_rss_mib": 170},
+      {"phase": 2, "success": true, "turns": 2, "provider_requests": 2, "completed_cycles": 2, "fact_stored": true, "recalled": true, "children": 0, "actual_revenue_usd": 0, "peak_rss_mib": 164},
+      {"phase": 3, "success": true, "turns": 3, "provider_requests": 3, "completed_cycles": 3, "fact_stored": true, "recalled": true, "children": 0, "actual_revenue_usd": 0, "peak_rss_mib": 164}
+    ],
+    "offline_verifier": {"success": true, "separate_process_and_container": true, "database_readonly": true, "network": false, "api_key": false, "completed_cycles": 3, "turns": 3, "provider_requests_total": 3, "additional_provider_requests": 0},
+    "synthetic_calculations_verified": {"unit_contribution_usd": 40, "assumed_profit_for_three_sales_usd": 100, "actual_revenue_usd": 0, "market_validated": false},
+    "reservation_refs": [
+      "refs/tags/evaluation/gemini-continuity-v1-cycle-1-reserved",
+      "refs/tags/evaluation/gemini-continuity-v1-cycle-2-reserved",
+      "refs/tags/evaluation/gemini-continuity-v1-cycle-3-reserved"
+    ],
+    "all_refs_verified_at_tested_commit": true,
+    "all_three_slots_consumed": true,
+    "workflow_retired_after_trial": true,
+    "raw_model_output_published": false,
+    "sqlite_artifact_uploaded": false
+  },
+  "validation": {
+    "ci_run": 41009770128,
+    "ci_url": "https://github.com/JonathanShynn/automaton/actions/runs/41009770128",
+    "ci_conclusion": "success",
+    "node20_job": 123912771675,
+    "node22_job": 123912771387,
+    "tests_per_node": 1704,
+    "files_per_node": 69,
+    "typecheck": "passed",
+    "production_audit": "no known vulnerabilities found",
+    "offline_run": 41009765483,
+    "offline_job": 123912756507,
+    "offline_url": "https://github.com/JonathanShynn/automaton/actions/runs/41009765483",
+    "offline_conclusion": "success",
+    "offline_tests": 12,
+    "focused_mock_trial_tests": 8,
+    "reservation_tests": 4
+  },
+  "limits": [
+    "Controlled short mission with known answers, not market research or income.",
+    "Prior history is supplied to the model; recall and calculation share one model turn.",
+    "SQLite persists between containers within one runner, not after loss of that runner.",
+    "No 24-hour service, scheduler, long-history memory measurement or permanent host.",
+    "Further model usage requires a new explicit quota; consumed references must not be reset."
+  ]
+}

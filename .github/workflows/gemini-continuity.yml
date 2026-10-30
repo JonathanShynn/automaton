@@ -17,8 +17,8 @@ concurrency:
 
 jobs:
   continuity:
-    # Owner explicitly authorized at most three new free requests on 2026-10-30.
-    if: github.repository == 'JonathanShynn/automaton' && github.event.repository.private == false
+    # All three authorized requests were used successfully. Preserve reservations.
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 12
     permissions:

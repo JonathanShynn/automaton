@@ -2,6 +2,9 @@
 
 Fecha: 30 de octubre de 2026 (Taiwán).
 
+Fase real posterior: [tres ciclos de Gemini y reinicios comprobados](GEMINI_CONTINUITY.md).
+Los resultados de simulación que siguen conservan su alcance original.
+
 ## Alcance
 
 Esta fase usa el motor real `runAgentLoop`, herramientas locales y SQLite real,

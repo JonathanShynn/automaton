@@ -1,6 +1,7 @@
 # Evaluación aislada de Automaton para Agent Zero
 
-Estado actual: [seis ciclos simulados, reinicios y bloqueo de tareas interrumpidas comprobados](CONTINUITY.md).
+Estado actual: [tres ciclos reales de Gemini con reinicios comprobados](GEMINI_CONTINUITY.md).
+Resiliencia simulada: [seis ciclos y bloqueo de tareas interrumpidas](CONTINUITY.md).
 Prueba real anterior: [un ciclo de Gemini y recuperación de SQLite](RESEARCH_CYCLE.md).
 Historial: [presupuesto compartido y conexión simple de Gemini comprobada](GLOBAL_BUDGET.md).
 El sondeo real de una petición pasó en GitHub; el agente continuo sigue pendiente.

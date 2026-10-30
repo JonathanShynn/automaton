@@ -2,8 +2,10 @@
 
 Fecha: 29 de octubre de 2026 (Taiwán).
 
-Actualización del 30 de octubre: [continuidad con seis ciclos simulados y ensayos
-de interrupción](CONTINUITY.md). No se realizaron nuevas peticiones reales.
+Primera actualización del 30 de octubre: [continuidad con seis ciclos simulados y
+ensayos de interrupción](CONTINUITY.md), sin peticiones reales en esa fase.
+Después se autorizaron y completaron [tres ciclos reales adicionales](GEMINI_CONTINUITY.md);
+las reservas de los ensayos descritos abajo permanecen intactas.
 
 ## Resultado actual: ciclo real y checkpoint comprobados
 

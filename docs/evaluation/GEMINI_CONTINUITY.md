@@ -2,6 +2,35 @@
 
 Fecha: 30 de octubre de 2026 (Taiwán).
 
+## Resultado: tres ciclos reales correctos
+
+La [ejecución real](https://github.com/JonathanShynn/automaton/actions/runs/41009765535)
+completó los tres ciclos, uno por proceso y contenedor, con exactamente tres
+solicitudes a Gemini. Los tres hechos, turnos y recibos se verificaron. Las fases
+2 y 3 recuperaron la memoria previa y sus cálculos coincidieron con los valores
+esperados. Un cuarto proceso, sin red ni clave, volvió a abrir SQLite en modo
+de solo lectura y comprobó los tres checkpoints sin solicitudes adicionales.
+
+El código probado es `b2310ca651ca0bab56784d2f7f15e12fe9367cf0`. Los procesos
+de modelo alcanzaron 170, 164 y 164 MiB de RSS máxima, respectivamente. No es una
+medición sostenida ni demuestra que 512 MB alcancen para un historial prolongado.
+Las tres reservas externas quedaron consumidas y el workflow se desactivó
+(`if: false`); no hay nuevas llamadas automáticas ni tarea periódica.
+
+La evidencia resumida se conserva en
+[gemini-continuity-results.json](gemini-continuity-results.json). No se publicaron
+la base, los registros completos de solicitudes, las respuestas reales ni los
+registros completos del motor. Las instrucciones sintéticas de la prueba forman
+parte del código revisable.
+
+La [CI](https://github.com/JonathanShynn/automaton/actions/runs/41009770128)
+aprobó 1.704 pruebas en 69 archivos con Node 20 y 22, tipos y auditoría de
+producción sin vulnerabilidades conocidas. La
+[evaluación aislada](https://github.com/JonathanShynn/automaton/actions/runs/41009765483)
+aprobó las 12 pruebas de continuidad y aislamiento. Las ocho pruebas focalizadas
+del ensayo con modelo simulado y las cuatro de reservas también pasaron antes
+de emitir solicitudes reales.
+
 El propietario autorizó explícitamente un nuevo ensayo de **tres solicitudes como
 máximo**, una por ciclo, sin reintentos, sin habilitar facturación y sin contratar
 servicios. El proyecto gratuito de Gemini fue confirmado por el propietario;
@@ -58,12 +87,12 @@ El token GitHub solo llega a los pasos de reserva; la clave de Gemini solo a los
 contenedores de modelo y preflight. La construcción no recibe credenciales.
 La salida completa del motor se redirige a archivos privados y efímeros del runner.
 Solo se publican campos numéricos/booleanos permitidos. No se suben bases SQLite,
-prompts, respuestas ni registros completos como artefactos.
+registros de solicitudes, respuestas ni registros completos como artefactos.
 
 Antes de reservar, se ejecutan cuatro pruebas de reservas sin red, se construye la
 imagen, se ejecutan las ocho pruebas del ensayo con modelo simulado y se validan
-los parámetros reales sin red. Los resultados del ensayo real se incorporarán
-aquí una vez que termine; preparar esta receta no demuestra su ejecución.
+los parámetros reales sin red. Estos pasos y los tres ciclos reales pasaron en
+la ejecución enlazada arriba.
 
 Este ensayo no prueba operación de 24 horas, permanencia del disco entre máquinas,
 investigación comercial autónoma ni rentabilidad. Solo prueba la continuidad de
